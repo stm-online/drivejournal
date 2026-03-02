@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "user_id": 1,
+        "car_id": 1,
+        "km": 12550,
+        "type": "end",
+        "timestamp": "2026-03-02 13:26:17",
+        "start_km": 12500,
+        "start_source": "fallback-current"
+    },
+    {
+        "id": 2,
+        "user_id": 2,
+        "car_id": 1,
+        "km": 12625,
+        "type": "end",
+        "timestamp": "2026-03-02 13:27:01",
+        "start_km": 12600,
+        "start_source": "open-start",
+        "linked_trip_id": 1
+    }
+]

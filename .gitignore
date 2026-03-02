@@ -1,5 +1,5 @@
 # Datenverzeichnisse
-/data/*.json
+#/data/*.json
 /uploads/*
 !uploads/.gitkeep
 

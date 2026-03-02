@@ -1,0 +1,19 @@
+[
+    {
+        "id": 1,
+        "name": "Stefan",
+        "token": "8a47faf3d52f5bd0",
+        "email": "st.my@t-online.de"
+    },
+    {
+        "id": 2,
+        "name": "Ramona",
+        "token": "40d3e1e61e1be3c5"
+    },
+    {
+        "id": 5,
+        "name": "Heinz",
+        "token": "ea768613199d590c",
+        "email": "heinz@mail.de"
+    }
+]
