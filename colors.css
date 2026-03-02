@@ -1,0 +1,31 @@
+/* Theme variables (moved out of styles_v1.css for easy theming)
+   Create alternate files like colors-dark.css and swap the linked/imported file. */
+:root {
+    --primary-color: #303649;
+    --primary-hover: #17202a;
+    --success-color: #01ABA3;
+    --important-color: #d97706;
+    --danger-color: #e23c0a;
+    --accent-color: #ACBAC4;
+    --bg-color: #FFFFFF;
+    
+    --background-card: #E9E9E9;
+    --background-surface: var(--bg-color);
+    --background-table-head: #b3cece;
+    --background-warning: #f5e6d3;
+    --text-color: #303649;
+    --text-light: #7d8a96;
+    --border-color: var(--background-disabled);
+    --shadow: 0 1px 3px 0 rgb(48 54 73 / 0.1), 0 1px 2px -1px rgb(48 54 73 / 0.1);
+
+    /* Buttons text colors and backgrounds) */
+    --color-primary: #ffffff;
+    --color-secondary: #ffffff;
+    --color-critical: #ffffff;
+    --color-disabled: #7d8a96;
+    --background-primary: var(--primary-color);
+    --background-secondary: var(--success-color);
+    --background-appcontrol: var(--important-color);
+    --background-critical: var(--important-color);
+    --background-disabled: #dddddd;
+}

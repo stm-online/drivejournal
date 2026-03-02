@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DriveJournal — Style Test</title>
+  <link rel="stylesheet" href="colors.css">
+  <link rel="stylesheet" href="styles_v2.css">
+  <style>
+    body { padding: 24px; background: #f7f8fa; }
+    section { margin-bottom: 28px; }
+    .sample { padding: 12px; border: 1px dashed #ccc; border-radius: 6px; background: white; max-width: 900px; margin: 0 0 0 30px; }
+
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .label { min-width:220px; color:#333; font-weight:600; }
+  </style>
+</head>
+<body>
+  <h1>Style-Testseite — DriveJournal</h1>
+    <section>
+    <h2>Buttons (Basis & Modifier)</h2>
+    <div class="sample row" style="position:relative;">
+      <button class="btn btn--appcontrol btn--small">btn btn--appcontrol btn--small</button>
+      <button class="btn btn--primary btn--normal">.btn .btn--primary .btn--normal Primär</button>
+      <button class="btn btn--secondary btn--normal">.btn .btn--secondary .btn--normal Sekundär</button>
+      <button class="btn btn--critical btn--normal">.btn .btn--critical .btn--normal Kritisch</button>
+      <button class="btn btn--critical btn--small">.btn .btn--critical .btn--small Klein</button>
+      <button class="btn btn--primary btn--normal" disabled>.btn:disabled Deaktiviert</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Aktion-Buttons / Action Buttons</h2>
+    <div class="sample row action-buttons">
+      <button class="btn btn--secondary btn--normal">.action-buttons .btn--secondary Start</button>
+      <button class="btn btn--primary btn--normal">.action-buttons .btn--primary Ende</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Karten / Karten-ähnliche Bereiche</h2>
+    <div class="sample">
+      <!-- user-selection removed from test page -->
+      <div class="km-input-section">
+        <label>KM Eingabe .km-input-section #km-input</label>
+        <input id="km-input" value="12345">
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Fahrzeug-Auswahl</h2>
+    <div class="sample car-selection">
+      <div class="car-grid">
+        <div class="car-item">.car-item
+          <div class="car-placeholder">🚗</div>
+          <div class="car-name">Auto A</div>
+          <div class="car-km">KM: 12.345</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Letzte Fahrt / Last Trip</h2>
+    <div class="sample last-trip">
+      <h3>Letzte Fahrt .last-trip</h3>
+      <p class="distance">.last-trip .distance 15 km</p>
+      <p class="date">.last-trip .date 01.01.2026</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Trips History — Tabelle</h2>
+    <div class="sample trips-history">
+      <table class="trips-table">
+        <thead>
+          <tr><th>.trips-table th Datum</th><th>.trips-table th Von</th><th>.trips-table th:nth-child(3) Dist.</th><th>.trips-table th:nth-child(4) KM</th></tr>
+        </thead>
+        <tbody>
+          <tr class="trip-initial"><td>.trips-table td ---</td><td>.trips-table td Initial</td><td class="trip-distance">.trip-distance —</td><td class="trip-km-stand">.trip-km-stand 0</td></tr>
+          <tr><td class="trip-date">.trip-date <strong>02.02.2026</strong><span>08:00</span></td><td>td Home → Arbeit</td><td class="trip-distance">.trip-distance 12 km</td><td class="trip-km-stand">.trip-km-stand 12357</td></tr>
+          <tr class="trip-gap"><td>.trip-gap 03.02.2026</td><td><span class="trip-gap-label">Lücke</span></td><td class="trip-distance">.trip-gap .trip-distance ?</td><td class="trip-km-stand">.trip-gap .trip-km-stand —</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Gap Correction — Inline</h2>
+    <div class="sample">
+      <div class="gap-correction-box">.gap-correction-box
+        <div class="corr-row">
+          <label>Start</label>
+          <input type="number" value="12350">
+          <button class="btn btn--critical btn--small btn-gap-capture">.btn .btn--critical .btn--small .btn-gap-capture Capture</button>
+        </div>
+        <div class="corr-row">
+          <label>Ende</label>
+          <input type="number" value="12360">
+          <button class="btn btn--critical btn--small">.btn .btn--critical .btn--small Bestätigen</button>
+          <button class="btn btn--secondary btn--small">.btn .btn--secondary .btn--small Abbrechen</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Bestätigungs-Dialog (sichtbar)</h2>
+    <div class="sample confirmation-section active">
+      <div class="confirmation-content">.confirmation-content
+        <h3>Bestätigen</h3>
+        <div class="confirmation-info">
+          <p>Maske mit `btn`-Beispielen</p>
+        </div>
+        <button class="btn btn--primary btn--normal">.confirmation-content .btn.btn--primary OK</button>
+        <button class="btn btn--critical btn--normal">.confirmation-content .btn.btn--critical Korrektur</button>
+        <button class="btn btn--secondary btn--normal">.confirmation-content .btn.btn--secondary Abbrechen</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Status-Nachrichten</h2>
+    <div class="sample">
+      <div class="status-message success">.status-message.success Status: Erfolg</div>
+      <div class="status-message error">.status-message.error Status: Fehler</div>
+      <div class="status-message validation">.status-message.validation KM Validierungsfehler</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tabs & Pagination</h2>
+    <div class="sample">
+      <div class="tabs">.tabs
+        <button class="tab-button">.tab-button Tab A</button>
+        <button class="tab-button active">.tab-button.active Tab B</button>
+      </div>
+      <div class="spacer-10"></div>
+      <div class="pagination">.pagination
+        <button class="btn btn--primary btn--small">&laquo; Vor</button>
+        <div class="page-info">.page-info Seite 1 von 3</div>
+        <button class="btn btn--primary btn--small">Nächste &raquo;</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Admin / Formulare</h2>
+    <div class="sample add-form">
+      <h3>Neues Element</h3>
+      <input placeholder="Name">
+      <!-- test-only buttons removed -->
+    </div>
+  </section>
+
+  <!-- test page footer removed -->
+</body>
+</html>

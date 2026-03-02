@@ -1,0 +1,22 @@
+# Datenverzeichnisse
+/data/*.json
+/uploads/*
+!uploads/.gitkeep
+
+# PHP temporäre Dateien
+*.log
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System
+.DS_Store
+Thumbs.db
+
+# Webserver Configurationsdateien
+.htaccess  
+web.config
