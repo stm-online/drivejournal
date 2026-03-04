@@ -87,7 +87,7 @@ foreach ($cars as $car) {
 
         <!-- KM Eingabe -->
         <div class="km-input-section">
-            <input id="km-input" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Neuer Kilometerstand" aria-label="Kilometerstand">
+            <input id="km-input" class="input_text input_text--xl" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Neuer Kilometerstand" aria-label="Kilometerstand">
             <!-- Start/Ende Buttons -->
             <div class="action-buttons">
                 <button class="btn btn--secondary btn--normal" id="btn-start">Start</button>
@@ -119,7 +119,7 @@ foreach ($cars as $car) {
             </div>
         </div>
         <?php else: ?>
-        <div class="no-cars">
+        <div class="empty">
             <p>Keine Autos vorhanden. Bitte im Admin-Bereich Autos anlegen.</p>
         </div>
         <?php endif; ?>
@@ -149,75 +149,72 @@ foreach ($cars as $car) {
 
         <!-- Status-Anzeige für Meldungen aus dem Bestätigungsdialog -->
         <div class="status-message" id="status-message-dialog" tabindex="-1" role="status" aria-live="polite"></div>
+        <!-- KM und Kosten Box (direkt vor Summe der Fahrten) -->
+        <div class="trips-history" id="km-cost-box">
+            <h3>💶 Kosten</h3>
+            <div class="km-cost-inner">
+                <div class="cost-current">
+                    <div class="current-month-name" id="current-month-name">Monat</div>
+                    <div class="current-cost"><span id="cost-month">0,00</span>&nbsp;€</div>
+                </div>
+                <div class="cost-prev">
+                    <div class="cost-row">
+                        <div  id="prev1-name">Monat 1</div>
+                        <div class="cost-value"><span id="cost-prev1">0,00</span>&nbsp;€</div>
+                    </div>
+                    <div class="cost-row">
+                        <div  id="prev2-name">Monat 2</div>
+                        <div class="cost-value"><span id="cost-prev2">0,00</span>&nbsp;€</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <!-- Summe der Fahrten -->
-        <div class="trips-history">
-            <h3>Summe deiner Fahrten (KM)</h3>
-            <?php
-            // Berechne Distanzen pro Fahrzeug und Zeitraum (diese Woche, diesen Monat, dieses Jahr)
-            $now = time();
-            // Wochenbeginn (Montag)
-            $weekStart = strtotime('-' . (date('N', $now) - 1) . ' days', strtotime('today'));
-            $monthStart = strtotime(date('Y-m-01', $now));
-            $yearStart = strtotime(date('Y-01-01', $now));
-
-            // Initialisierung
-            $perCar = []; // car_id => ['name'=>..., 'week'=>0,'month'=>0,'year'=>0]
-            $totals = ['week' => 0, 'month' => 0, 'year' => 0];
-
-            foreach ($trips as $t) {
-                if (($t['user_id'] ?? null) != $currentUser['id']) continue;
-                if (($t['type'] ?? '') !== 'end') continue;
-                $ts = isset($t['timestamp']) ? strtotime($t['timestamp']) : 0;
-                $dist = isset($t['distance']) && is_numeric($t['distance']) ? (float)$t['distance'] : null;
-                if ($dist === null) continue;
-                $cid = $t['car_id'];
-                if (!isset($perCar[$cid])) {
-                    $perCar[$cid] = ['name' => ($carMap[$cid] ?? 'Unbekannt'), 'week' => 0.0, 'month' => 0.0, 'year' => 0.0];
-                }
-                if ($ts >= $weekStart) {
-                    $perCar[$cid]['week'] += $dist;
-                    $totals['week'] += $dist;
-                }
-                if ($ts >= $monthStart) {
-                    $perCar[$cid]['month'] += $dist;
-                    $totals['month'] += $dist;
-                }
-                if ($ts >= $yearStart) {
-                    $perCar[$cid]['year'] += $dist;
-                    $totals['year'] += $dist;
-                }
-            }
-
-            // Sortiere Fahrzeuge nach Name
-            uasort($perCar, function($a, $b){ return strcmp($a['name'], $b['name']); });
-            ?>
-
-            <table class="trips-table">
+        <!-- Summe deiner Fahrten (€) -->
+        <div class="trips-history" id="cost-summary">
+            <h3>📊 Summe deiner Fahrten (€)</h3>
+            <table class="table-inline">
                 <thead>
                     <tr>
-                        <th class="text-left">Fahrzeug</th>
-                        <th class="text-center">Diese Woche</th>
-                        <th class="text-center">Dieser Monat</th>
-                        <th class="text-center">Dieses Jahr</th>
+                        <th class="col-left">Fahrzeug</th>
+                        <th class="col-right">Diese Woche</th>
+                        <th class="col-right">Dieser Monat</th>
+                        <th class="col-right">Dieses Jahr</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="cost-summary-body"></tbody>
+                <tfoot>
                     <tr class="summary-total">
                         <td><strong>Gesamt</strong></td>
-                        <td class="text-center"><strong><?= number_format($totals['week'],0,',','.') ?></strong></td>
-                        <td class="text-center"><strong><?= number_format($totals['month'],0,',','.') ?></strong></td>
-                        <td class="text-center"><strong><?= number_format($totals['year'],0,',','.') ?></strong></td>
+                        <td class="col-right"><strong id="cost-summary-week">0,00 €</strong></td>
+                        <td class="col-right"><strong id="cost-summary-month">0,00 €</strong></td>
+                        <td class="col-right"><strong id="cost-summary-year">0,00 €</strong></td>
                     </tr>
-                    <?php foreach ($perCar as $cid => $row): ?>
+                </tfoot>
+            </table>
+        </div>        
+
+        <!-- Summe deiner Fahrten (KM) -->
+        <div class="trips-history" id="km-summary">
+            <h3>📊 Summe deiner Fahrten (KM)</h3>
+            <table class="table-inline">
+                <thead>
                     <tr>
-                        <td><?= htmlspecialchars($row['name']) ?></td>
-                        <td class="text-center"><?= number_format($row['week'],0,',','.') ?></td>
-                        <td class="text-center"><?= number_format($row['month'],0,',','.') ?></td>
-                        <td class="text-center"><?= number_format($row['year'],0,',','.') ?></td>
+                        <th class="col-left">Fahrzeug</th>
+                        <th class="col-right">Diese Woche</th>
+                        <th class="col-right">Dieser Monat</th>
+                        <th class="col-right">Dieses Jahr</th>
                     </tr>
-                    <?php endforeach; ?>
-                </tbody>
+                </thead>
+                <tbody id="km-summary-body"></tbody>
+                <tfoot>
+                    <tr class="summary-total">
+                        <td><strong>Gesamt</strong></td>
+                        <td class="col-right"><strong id="km-summary-week">0</strong></td>
+                        <td class="col-right"><strong id="km-summary-month">0</strong></td>
+                        <td class="col-right"><strong id="km-summary-year">0</strong></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
 
@@ -225,13 +222,13 @@ foreach ($cars as $car) {
         <?php if (!empty($userTrips)): ?>
         <div class="trips-history">
             <h3>📋 Deine Fahrten</h3>
-            <table class="trips-table">
+            <table class="table-inline">
                 <thead>
                     <tr>
-                        <th>Datum</th>
-                        <th>Auto</th>
-                        <th>KM</th>
-                        <th>KM-Stand</th>
+                        <th class="col-left">Datum</th>
+                        <th class="col-left">Auto</th>
+                        <th class="col-center">KM</th>
+                        <th class="col-right">KM-Stand</th>
                     </tr>
                 </thead>
                 <tbody id="user-trips-body">
@@ -248,8 +245,13 @@ foreach ($cars as $car) {
     </div>
 
     <?php render_app_data_script($users, $cars, $currentUser['id'], false, $userTrips, $tripsByCar); ?>
+    <script src="statistics.js"></script>
     <script src="script.js"></script>
     <script src="trips.js"></script>
+    <script>
+    renderKmCostBox(carsData, carTripsData, userTripsData);
+    renderSummaryTables(userId, carsData, carTripsData, ['week','month','year']);
+    </script>
 </body>
 </html>
 

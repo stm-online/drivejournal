@@ -10,7 +10,7 @@ window.switchCarTab = function(carId) {
     });
     
     // Verstecke alle Tab-Inhalte
-    document.querySelectorAll('.car-tab-content').forEach(content => {
+    document.querySelectorAll('.tab-panel').forEach(content => {
         content.classList.remove('active');
     });
     

@@ -3,23 +3,25 @@
         "id": 1,
         "name": "Testauto 1",
         "initial_km": 12500,
-        "current_km": 12625,
+        "current_km": 14500,
         "image": "img\/car_1.png",
-        "cost_per_km": 0.25,
-        "cost_per_month": 12
+        "cost_per_km": 0.05,
+        "cost_per_month": 0
     },
     {
         "id": 3,
         "name": "Testauto 2",
         "initial_km": 22000,
-        "current_km": 22100,
-        "image": "img\/car_2.png"
+        "current_km": 22122,
+        "image": "img\/car_2.png",
+        "cost_per_km": 0.05,
+        "cost_per_month": 5000
     },
     {
         "id": 4,
         "name": "Testauto 3",
         "initial_km": 500,
-        "current_km": 500,
+        "current_km": 1000,
         "image": "img\/car_3.png"
     }
 ]

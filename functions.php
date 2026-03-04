@@ -326,15 +326,15 @@ function render_trip_history_ui($tripsByCar, $cars, $users, $currentUserId = nul
         $name = htmlspecialchars($carData['car']['name']);
         $active = $index === 0 ? 'active' : '';
         $id = $carData['car']['id'];
-        echo "        <button class=\"car-tab active data-car-id=\"$id\" onclick=\"switchCarTab($id)\">$name</button>\n";
+        echo "        <button class=\"car-tab $active\" data-car-id=\"$id\" onclick=\"switchCarTab($id)\">$name</button>\n";
     }
     echo "    </div>\n";
     echo "    <div class=\"car-tab-contents\">\n";
     foreach ($tripsByCar as $index => $carData) {
         $active = $index === 0 ? 'active' : '';
         $id = $carData['car']['id'];
-        echo "        <div class=\"car-tab-content id=\"car-tab-$id\" active>\n";
-        echo "            <table class=\"trips-table\">\n";
+        echo "        <div class=\"tab-panel $active\" id=\"car-tab-$id\">\n";
+        echo "            <table class=\"table-inline\">\n";
         echo "                <thead>\n";
         echo "                    <tr>\n";
         echo "                        <th>Datum</th>\n";
@@ -416,6 +416,8 @@ function render_app_data_script($users, $cars, $currentUserId = null, $isAdmin =
             'current_km' => isset($c['current_km']) ? $c['current_km'] : (isset($c['initial_km']) ? $c['initial_km'] : 0),
             'open_start_km' => isset($c['open_start_km']) ? $c['open_start_km'] : null,
             'last_trip_id' => null,
+            'cost_per_km' => isset($c['cost_per_km']) ? (float)$c['cost_per_km'] : null,
+            'cost_per_month' => isset($c['cost_per_month']) ? (float)$c['cost_per_month'] : null,
         ];
         // try to find matching entry in tripsByCar to get last_trip_id/current_km if computed there
         foreach ($tripsByCar as $tb) {

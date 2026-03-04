@@ -8,5 +8,16 @@
         "timestamp": "2026-03-02 13:26:30",
         "start_km": 22000,
         "start_source": "fallback-current"
+    },
+    {
+        "id": 2,
+        "user_id": 1,
+        "car_id": 3,
+        "km": 22122,
+        "type": "end",
+        "timestamp": "2026-03-03 16:23:22",
+        "start_km": 22100,
+        "start_source": "history-guess",
+        "linked_trip_id": 1
     }
 ]

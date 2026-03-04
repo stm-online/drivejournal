@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 require_once 'functions.php';
 
@@ -51,10 +51,10 @@ if (!checkAdmin()) {
             </div>
             <div class="login-form">
                 <?php if (isset($error)): ?>
-                    <div class="error"><?= $error ?></div>
+                    <div class="status-message status-message--error"><?= $error ?></div>
                 <?php endif; ?>
                 <form method="POST">
-                    <input type="password" name="password" placeholder="Admin-Passwort" required autofocus>
+                    <input class="input_text input_text--lg" type="password" name="password" placeholder="Admin-Passwort" required autofocus>
                     <button type="submit" name="login" class="btn btn--primary btn--normal">Anmelden</button>
                 </form>
             </div>
@@ -116,32 +116,32 @@ foreach ($trips as $trip) {
         </div>
 
         <!-- Autos Tab -->
-        <div class="tab-content active" id="tab-cars">            
+        <div class="tab-panel active" id="tab-cars">            
             <div class="add-form">
                 <h3>Neues Auto hinzufügen</h3>
                 <form id="add-car-form" enctype="multipart/form-data">
-                    <div class="row-block">
-                        <div class="row">
+                    <div class="form_grid">
+                        <div class="form_row">
                             <div class="label">Name</div>
-                            <input class="text-input-big" type="text" name="name" placeholder="Auto Name (z.B. VW Golf)" required>
+                            <input class="input_text input_text--lg" type="text" name="name" placeholder="Auto Name (z.B. VW Golf)" required>
                         </div>
-                        <div class="row">
+                        <div class="form_row">
                             <div class="label">KM-Stand</div>
-                            <input class="text-input-big" type="number" name="current_km" placeholder="Aktueller KM-Stand" required>
+                            <input class="input_text input_text--lg" type="number" name="current_km" placeholder="Aktueller KM-Stand" required>
                         </div>
-                        <div class="row">
+                        <div class="form_row">
                             <div class="label">Bild</div>
-                            <input type="file" name="image" accept="image/*">
+                            <input class="input_text" type="file" name="image" accept="image/*">
                         </div>
-                        <div class="row">
+                        <div class="form_row">
                             <div class="label">€/km</div>
-                            <input class="text-input-big" type="text" name="cost_per_km" placeholder="z.B. 1,99">
+                            <input class="input_text input_text--lg" type="text" name="cost_per_km" placeholder="z.B. 1,99">
                         </div>
-                        <div class="row">
+                        <div class="form_row">
                             <div class="label">€/Monat</div>
-                            <input class="text-input-big" type="text" name="cost_per_month" placeholder="z.B. 19,99">
+                            <input class="input_text input_text--lg" type="text" name="cost_per_month" placeholder="z.B. 19,99">
                         </div>
-                        <div class="row">
+                        <div class="form_row">
                             <div class="label"></div>
                             <button type="submit" class="btn btn--primary btn--normal">Auto hinzufügen</button>
                         </div>
@@ -149,7 +149,7 @@ foreach ($trips as $trip) {
                 </form>
             </div>
 
-            <div class="car-list">
+            <div class="item-list">
                 <?php foreach ($cars as $car): ?>
                     <div class="admin-item" data-car-id="<?= $car['id'] ?>">
                         <?php if (!empty($car['image'])): ?>
@@ -158,7 +158,7 @@ foreach ($trips as $trip) {
                             <div id="car-img-placeholder-<?= $car['id'] ?>" class="car-placeholder">🚗</div>
                         <?php endif; ?>
 
-                        <div class="car-info" style="flex:1;">
+                        <div class="admin-info">
                             <div class="controls-top">
                                 <button class="btn btn--primary btn--small" data-action="edit" data-car-id="<?= $car['id'] ?>" onclick="startCarEdit(<?= $car['id'] ?>)">✏️ Bearbeiten</button>
                                 <button class="btn btn--secondary btn--small hidden" data-action="cancel" data-car-id="<?= $car['id'] ?>" onclick="cancelCarEdit(<?= $car['id'] ?>)">Abbruch</button>
@@ -166,35 +166,35 @@ foreach ($trips as $trip) {
                                 <button class="btn btn--critical btn--small" onclick="deleteCar(<?= $car['id'] ?>)">🗑️ löschen</button>
                             </div>
 
-                            <div class="row-block">
-                                <div class="row">
+                            <div class="form_grid">
+                                <div class="form_row">
                                     <div>Name</div>
-                                    <input class="text-input-bold" id="car-name-input-<?= $car['id'] ?>"  value="<?= htmlspecialchars($car['name'], ENT_QUOTES) ?>" disabled>
+                                    <input class="input_text input_text--bold" id="car-name-input-<?= $car['id'] ?>"  value="<?= htmlspecialchars($car['name'], ENT_QUOTES) ?>" disabled>
                                 </div>
 
-                                <div class="row">
+                                <div class="form_row">
                                     <div>KM-Stand</div>
-                                    <input class="text-input" value="<?= number_format((float)($car['current_km'] ?? 0), 0, ',', '.') ?>" disabled>
+                                    <input class="input_text" value="<?= number_format((float)($car['current_km'] ?? 0), 0, ',', '.') ?>" disabled>
                                 </div>
                                 <?php if (isset($car['open_start_km'])): ?>
-                                <div class="row">
+                                <div class="form_row">
                                     <div>Offene Fahrt</div>
-                                    <input class="text-input" value="<?= number_format($car['open_start_km'], 0, ',', '.') ?>" disabled>
+                                    <input class="input_text" value="<?= number_format($car['open_start_km'], 0, ',', '.') ?>" disabled>
                                 </div>
                                 <?php endif; ?>
-                                <div class="row">
+                                <div class="form_row">
                                     <div>Bild</div>
-                                    <input class="text-input" id="car-image-input-<?= $car['id'] ?>" value="<?= htmlspecialchars($car['image'] ?? '', ENT_QUOTES) ?>" disabled>
+                                    <input class="input_text" id="car-image-input-<?= $car['id'] ?>" value="<?= htmlspecialchars($car['image'] ?? '', ENT_QUOTES) ?>" disabled>
                                 </div>
-                                <div class="row">
+                                <div class="form_row">
                                     <div>€/km</div>
                                     <?php $costKm = isset($car['cost_per_km']) && $car['cost_per_km'] !== '' ? number_format((float)$car['cost_per_km'], 2, ',', '') : ''; ?>
-                                    <input class="text-input" id="car-cost-km-input-<?= $car['id'] ?>" value="<?= htmlspecialchars($costKm, ENT_QUOTES) ?>" disabled>
+                                    <input class="input_text" id="car-cost-km-input-<?= $car['id'] ?>" value="<?= htmlspecialchars($costKm, ENT_QUOTES) ?>" disabled>
                                 </div>
-                                <div class="row">
+                                <div class="form_row">
                                     <div>€/Monat</div>
                                     <?php $costMonth = isset($car['cost_per_month']) && $car['cost_per_month'] !== '' ? number_format((float)$car['cost_per_month'], 2, ',', '') : ''; ?>
-                                    <input class="text-input" id="car-cost-month-input-<?= $car['id'] ?>" value="<?= htmlspecialchars($costMonth, ENT_QUOTES) ?>" disabled>
+                                    <input class="input_text" id="car-cost-month-input-<?= $car['id'] ?>" value="<?= htmlspecialchars($costMonth, ENT_QUOTES) ?>" disabled>
                                 </div>
                             </div>
                         </div>
@@ -206,20 +206,20 @@ foreach ($trips as $trip) {
         </div>
 
         <!-- Benutzer Tab -->
-        <div class="tab-content" id="tab-users">
+        <div class="tab-panel" id="tab-users">
             <div class="add-form">
                 <h3>Neuen Benutzer hinzufügen</h3>
                 <form id="add-user-form">
-                    <div class="row-block">
-                        <div class="row">
+                    <div class="form_grid">
+                        <div class="form_row">
                             <div class="label">Name</div>
-                            <input class="text-input-big" type="text" name="name" placeholder="Name (z.B. Papa, Mama)" required>
+                            <input class="input_text input_text--lg" type="text" name="name" placeholder="Name (z.B. Papa, Mama)" required>
                         </div>
-                        <div class="row">
+                        <div class="form_row">
                             <div class="label">E-Mail</div>
-                            <input class="text-input-big" type="email" name="email" placeholder="E-Mail (optional)">
+                            <input class="input_text input_text--lg" type="email" name="email" placeholder="E-Mail (optional)">
                         </div>
-                        <div class="row">
+                        <div class="form_row">
                             <div class="label"></div>
                             <button type="submit" class="btn btn--primary btn--normal">Benutzer hinzufügen</button>
                           
@@ -228,10 +228,10 @@ foreach ($trips as $trip) {
                 </form>
             </div>
 
-            <div class="user-list">
+            <div class="item-list">
                 <?php foreach ($users as $user): ?>
                     <div class="admin-item">
-                        <div class="user-info">
+                        <div class="admin-info">
                             <div>
                                 <div class="controls-top">
                                     <button class="btn btn--primary btn--small" data-action="edit" data-user-id="<?= $user['id'] ?>" onclick="startInlineEdit(<?= $user['id'] ?>)">✏️ editieren</button>
@@ -247,21 +247,21 @@ foreach ($trips as $trip) {
                                 $baseUrl = $protocol . '://' . $host . rtrim($path, '/') . '/drive.php?token=' . $user['token'];
                                 ?>
 
-                                <div class="row-block">
-                                    <div class="row">
+                                <div class="form_grid">
+                                    <div class="form_row">
                                         <div>Name</div>
-                                        <input class="text-input-bold" id="user-name-input-<?= $user['id'] ?>" value="<?= htmlspecialchars($user['name'], ENT_QUOTES) ?>" enterkeyhint="done" autocomplete="off" inputmode="text" disabled>
+                                        <input class="input_text input_text--bold" id="user-name-input-<?= $user['id'] ?>" value="<?= htmlspecialchars($user['name'], ENT_QUOTES) ?>" enterkeyhint="done" autocomplete="off" inputmode="text" disabled>
                                     </div>
 
-                                    <div class="row">
+                                    <div class="form_row">
                                         <div>E-Mail</div>
                                         <?php $emailVal = $user['email'] ?? ''; ?>
-                                        <input class="text-input" id="user-email-input-<?= $user['id'] ?>" value="<?= htmlspecialchars($emailVal, ENT_QUOTES) ?>" type="email" placeholder="E-Mail (optional)" disabled>
+                                        <input class="input_text" id="user-email-input-<?= $user['id'] ?>" value="<?= htmlspecialchars($emailVal, ENT_QUOTES) ?>" type="email" placeholder="E-Mail (optional)" disabled>
                                     </div>
 
-                                    <div class="row">
+                                    <div class="form_row">
                                         <div>Link</div>
-                                        <input class="text-input disabled" id="user-link-<?= $user['id'] ?>" value="<?= htmlspecialchars($baseUrl, ENT_QUOTES) ?>" disabled>
+                                        <input class="input_text" id="user-link-<?= $user['id'] ?>" value="<?= htmlspecialchars($baseUrl, ENT_QUOTES) ?>" disabled>
                                         <div class="link-actions">
                                             <button class="btn btn--secondary btn--small" data-link="<?= htmlspecialchars($baseUrl, ENT_QUOTES) ?>" onclick="copyLink(this)">📋 kopieren</button>
                                             <button class="btn btn--secondary btn--small" data-link="<?= htmlspecialchars($baseUrl, ENT_QUOTES) ?>" onclick="openLink(this)">🔗 öffnen</button>
@@ -278,7 +278,7 @@ foreach ($trips as $trip) {
         </div>
 
         <!-- Statistiken Tab -->
-        <div class="tab-content" id="tab-stats">
+        <div class="tab-panel" id="tab-stats">
             <?php
             // Bilde Trips per Car inklusive Lücken
             $tripsByCar = buildTripsByCar($cars, $trips);
@@ -288,10 +288,10 @@ foreach ($trips as $trip) {
             }
 
             if (empty($cars)) {
-                echo '<p class="no-data">Keine Autos vorhanden.</p>';
+                echo '<p class="empty">Keine Autos vorhanden.</p>';
             } else {
                 ?>
-                <div class="car-list">
+                <div class="item-list">
                 <?php
                 foreach ($cars as $car) {
                     $carId = $car['id'];
@@ -320,31 +320,31 @@ foreach ($trips as $trip) {
                         <?php else: ?>
                             <div id="car-stat-placeholder-<?= $carId ?>" class="car-placeholder">🚗</div>
                         <?php endif; ?>
-                        <div class="car-info">
-                            <div class="row-block">
-                                <div class="row row-statistic">
+                        <div class="admin-info">
+                            <div class="form_grid">
+                                <div class="form_row form_row--wide">
                                     <div>Name</div>
-                                    <input class="text-input-bold" id="car-stat-name-<?= $carId ?>" value="<?= htmlspecialchars($car['name'], ENT_QUOTES) ?>" disabled>
+                                    <input class="input_text input_text--bold" id="car-stat-name-<?= $carId ?>" value="<?= htmlspecialchars($car['name'], ENT_QUOTES) ?>" disabled>
                                 </div>
-                                <div class="row row-statistic">
+                                <div class="form_row form_row--wide">
                                     <div>Gefahrene KM</div>
-                                    <input class="text-input" id="car-stat-km-<?= $carId ?>" value="<?= number_format($totalKm, 0, ',', '.') ?> km" disabled>
+                                    <input class="input_text" id="car-stat-km-<?= $carId ?>" value="<?= number_format($totalKm, 0, ',', '.') ?> km" disabled>
                                 </div>
-                                <div class="row row-statistic">
+                                <div class="form_row form_row--wide">
                                     <div>Gesamtkosten</div>
-                                    <input class="text-input" id="car-stat-cost-<?= $carId ?>" value="<?= number_format($totalCost, 2, ',', '.') ?> €" disabled>
+                                    <input class="input_text" id="car-stat-cost-<?= $carId ?>" value="<?= number_format($totalCost, 2, ',', '.') ?> €" disabled>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="admin-item">    
-                        <table class="trips-table" style="width:100%;">
+                        <table class="table-inline table-inline--relaxed" style="width:100%;">
                             <thead>
                                 <tr>
                                     <th>Fahrer</th>
-                                    <th style="text-align:center">KM</th>
-                                    <th style="text-align:right">Kosten</th>
-                                    <th style="text-align:right">Anteil</th>
+                                    <th class="text-center">KM</th>
+                                    <th class="text-right">Kosten</th>
+                                    <th class="text-right">Anteil</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -352,7 +352,7 @@ foreach ($trips as $trip) {
                                     // Sortiere Nutzer nach gefahrenen KM absteigend
                                     arsort($perUserKm);
                                     if (empty($perUserKm)) {
-                                        echo '<tr><td colspan="4" class="no-data">Noch keine Fahrten erfasst.</td></tr>';
+                                        echo '<tr><td colspan="4" class="empty">Noch keine Fahrten erfasst.</td></tr>';
                                     } else {
                                         foreach ($perUserKm as $uid => $km) {
                                             $name = 'Unbekannt';
@@ -363,9 +363,9 @@ foreach ($trips as $trip) {
                                             $percent = $totalKm > 0 ? ($km / $totalKm) * 100 : 0;
                                             echo '<tr>';
                                             echo '<td>' . htmlspecialchars($name) . '</td>';
-                                            echo '<td style="text-align:center">' . number_format($km, 0, ',', '.') . ' km</td>';
-                                            echo '<td style="text-align:right">' . number_format($userCost, 2, ',', '.') . ' €</td>';
-                                            echo '<td style="text-align:right">' . number_format($percent, 1, ',', '.') . ' %</td>';
+                                            echo '<td class="text-center">' . number_format($km, 0, ',', '.') . ' km</td>';
+                                            echo '<td class="text-right">' . number_format($userCost, 2, ',', '.') . ' €</td>';
+                                            echo '<td class="text-right">' . number_format($percent, 1, ',', '.') . ' %</td>';
                                             echo '</tr>';
                                         }
                                     }

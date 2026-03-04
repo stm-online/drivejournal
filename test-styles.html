@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>DriveJournal — Style Test</title>
   <link rel="stylesheet" href="colors.css">
-  <link rel="stylesheet" href="styles_v2.css">
+  <link rel="stylesheet" href="styles.css">
   <style>
     body { padding: 24px; background: #f7f8fa; }
     section { margin-bottom: 28px; }
@@ -62,23 +62,21 @@
   </section>
 
   <section>
-    <h2>Letzte Fahrt / Last Trip</h2>
-    <div class="sample last-trip">
-      <h3>Letzte Fahrt .last-trip</h3>
-      <p class="distance">.last-trip .distance 15 km</p>
-      <p class="date">.last-trip .date 01.01.2026</p>
+    <h2>Letzte Fahrt (→ .trips-history)</h2>
+    <div class="sample trips-history">
+      <h3>Letzte Fahrt: Klasse entfernt, nutzt jetzt .trips-history</h3>
     </div>
   </section>
 
   <section>
     <h2>Trips History — Tabelle</h2>
     <div class="sample trips-history">
-      <table class="trips-table">
+      <table class="table-inline">
         <thead>
-          <tr><th>.trips-table th Datum</th><th>.trips-table th Von</th><th>.trips-table th:nth-child(3) Dist.</th><th>.trips-table th:nth-child(4) KM</th></tr>
+          <tr><th>.table-inline th Datum</th><th>.table-inline th Von</th><th>.table-inline th:nth-child(3) Dist.</th><th>.table-inline th:nth-child(4) KM</th></tr>
         </thead>
         <tbody>
-          <tr class="trip-initial"><td>.trips-table td ---</td><td>.trips-table td Initial</td><td class="trip-distance">.trip-distance —</td><td class="trip-km-stand">.trip-km-stand 0</td></tr>
+          <tr class="trip-initial"><td>.table-inline td ---</td><td>.table-inline td Initial</td><td class="trip-distance">.trip-distance —</td><td class="trip-km-stand">.trip-km-stand 0</td></tr>
           <tr><td class="trip-date">.trip-date <strong>02.02.2026</strong><span>08:00</span></td><td>td Home → Arbeit</td><td class="trip-distance">.trip-distance 12 km</td><td class="trip-km-stand">.trip-km-stand 12357</td></tr>
           <tr class="trip-gap"><td>.trip-gap 03.02.2026</td><td><span class="trip-gap-label">Lücke</span></td><td class="trip-distance">.trip-gap .trip-distance ?</td><td class="trip-km-stand">.trip-gap .trip-km-stand —</td></tr>
         </tbody>

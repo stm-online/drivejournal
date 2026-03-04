@@ -7,7 +7,7 @@ document.querySelectorAll('.tab-button').forEach(button => {
         
         // Entferne aktive Klasse von allen Tabs
         document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(content => content.classList.remove('active'));
         
         // Aktiviere gewählten Tab
         this.classList.add('active');
@@ -150,7 +150,7 @@ function copyLink(button) {
     // 2) fallback: try to find the .user-link-text in the same row
     let text = linkFromData;
     if (!text) {
-        const row = button.closest('.row');
+        const row = button.closest('.form_row');
         const textElem = row ? row.querySelector('.user-link-text') : null;
         text = textElem ? textElem.textContent.trim() : '';
     }
@@ -188,7 +188,7 @@ function openLink(button) {
     const dataLink = button.dataset && button.dataset.link ? button.dataset.link.trim() : '';
     if (dataLink) { window.open(dataLink, '_blank', 'noopener'); return; }
     const container = button.parentElement;
-    const row = button.closest('.row');
+    const row = button.closest('.form_row');
     const textElem = container.querySelector('.user-link-text') || (row ? row.querySelector('.user-link-text') : null);
     const url = textElem ? textElem.textContent.trim() : '';
     if (!url) { alert('Kein Link vorhanden'); return; }
@@ -334,7 +334,7 @@ function saveCarEdit(carId) {
         .then(d => {
             const status = document.getElementById('car-status-' + carId);
             if (d.success) {
-                if (status) { status.className = 'status-message success'; status.textContent = 'Daten von Auto ' + newName + ' erfolgreich gespeichert'; }
+                if (status) { status.className = 'status-message status-message--success'; status.textContent = 'Daten von Auto ' + newName + ' erfolgreich gespeichert'; }
                 // disable inputs and toggle buttons back
                 nameInput.setAttribute('disabled', 'disabled');
                 if (costKmInput) costKmInput.setAttribute('disabled', 'disabled');
@@ -375,15 +375,15 @@ function saveCarEdit(carId) {
                     }
                 }
                 // hide success after 3s
-                setTimeout(() => { if (status) status.className = 'status-message'; status.textContent = ''; }, 3000);
+                setTimeout(() => { if (status) { status.className = 'status-message'; status.textContent = ''; } }, 3000);
             } else {
-                if (status) { status.className = 'status-message error'; status.textContent = d.message || 'Fehler beim Speichern'; }
+                if (status) { status.className = 'status-message status-message--error'; status.textContent = d.message || 'Fehler beim Speichern'; }
             }
         })
         .catch(e => {
             console.error(e);
             const status = document.getElementById('car-status-' + carId);
-            if (status) { status.className = 'status-message error'; status.textContent = 'Fehler beim Speichern'; }
+            if (status) { status.className = 'status-message status-message--error'; status.textContent = 'Fehler beim Speichern'; }
         });
 }
 
@@ -476,7 +476,7 @@ function regenerateToken(userId) {
                 }
                 // update data-link on action buttons in the same row
                 if (linkElem) {
-                    const row = linkElem.closest('.row');
+                    const row = linkElem.closest('.form_row');
                     if (row) {
                         row.querySelectorAll('.link-actions .btn').forEach(b => { b.dataset.link = d.link; });
                     }

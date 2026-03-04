@@ -5,7 +5,7 @@
 - **Bestätigungs-Box**: .confirmation-section, .confirmation-content, .confirmation-info, .confirmation-actions, .confirmation-correction — Modal/Inline-Box zur Fahrtbestätigung.
 - **Korrektur-Box**: .gap-correction-box, .corr-row, .corr-msg, .debug-bounds, .gap-correction-row — Inline-Row zum Lücken schließen.
 - **Fahrzeug-Grid**: .car-selection, .car-grid, .car-item, .car-placeholder, .car-name, .car-km, .car-open-start — Karten/Items für Autos.
-- **Listen / Tabellen**: .trips-history, .trips-table, .trips-table th/td — Tabellendarstellung der Fahrten.
+- **Listen / Tabellen**: .trips-history, .table-inline, .table-inline th/td — Tabellendarstellung der Fahrten.
 
 **Buttons**
 - **Base**: .btn — gemeinsames Grundstyling (Padding, border-radius, font).
@@ -34,7 +34,7 @@
 - **Meldungs-Boxen vereinheitlichen**: Erzeuge Utility-Box-Klassen wie `.box`, `.box--warning`, `.box--error`, `.box--info` und wende sie auf `#km-error-message`, `.status-message`, `.corr-msg` an. Dadurch gleiche Padding/Border/Radius.
 - **Disabled-Zustand nur für Buttons**: Aktuelle UX verlangt, dass nur Buttons visuell deaktiviert werden. Stelle `:disabled`-Regeln nur für `.btn:disabled` ein und nicht für `.gap-correction-box.disabled`.
 - **Inputs vereinheitlichen**: Gemeinsame Regeln für `input[type="number"]` (Breite, Font, Padding, Fokus-Ring) statt einzelne Regeln verteilt im CSS.
-- **Tabelle & Listen**: Gemeinsame Tabellenvorlagen (`.trips-table`) mit `.trips-table th` / `td` zentralisieren; Paging `.page-btn` / `.page-info` ebenfalls hier definieren.
+- **Tabelle & Listen**: Gemeinsame Tabellenvorlagen (`.table-inline`) mit `.table-inline th` / `td` zentralisieren; Paging `.page-btn` / `.page-info` ebenfalls hier definieren.
 - **Grid-Komponenten**: `.car-grid` / `.car-item` sollten responsive Grid-Varianten in einem Abschnitt `/* Grid */` besitzen—so sind alle Karten konsistent.
 - **Farben / Abstände als Variablen**: Lege CSS-Variablen am Anfang von `styles_v1.css` an: `--color-primary`, `--color-warning`, `--color-error`, `--gap`, `--radius`. Das vereinfacht spätere Anpassungen.
 - **Utility-Klassen**: `.small`, `.muted`, `.initial-badge`, `.trip-gap`, `.trip-initial` als kleine Utility-Klassen zusammenfassen.

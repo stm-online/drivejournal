@@ -488,7 +488,9 @@ function showStatus(message, type, autoHideMs = 5000, targetId = 'status-message
     }
 
     statusEl.innerHTML = message;
-    statusEl.className = 'status-message ' + type;
+    // 'validation' => '--warning', alles andere 1:1
+    const cssType = type === 'validation' ? 'warning' : type;
+    statusEl.className = 'status-message status-message--' + cssType;
     focusStatusMessage(statusEl);
     
     if (autoHideMs > 0) {
