@@ -82,6 +82,8 @@ p   { margin-top: var(--spacing-xs); }
     width: 100%;
     box-sizing: border-box;
     min-width: 0;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .input_text--bold { font-weight: 700; }
@@ -133,6 +135,8 @@ p   { margin-top: var(--spacing-xs); }
     align-items: center;
     justify-content: center;
     text-decoration: none;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .btn--primary   { background: var(--background-primary); }
@@ -673,6 +677,26 @@ p   { margin-top: var(--spacing-xs); }
     font-size: 0.9rem;
 }
 
+.confirmation-correction input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--background-table-head);
+    border-radius: var(--radius-md);
+    font-size: 1.2rem;
+    font-family: inherit;
+    margin-bottom: 10px;
+    background: white;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.confirmation-correction input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(48, 54, 73, 0.12);
+}
+
 .confirm-last-entry { color: var(--text-light); }
 
 
@@ -702,9 +726,15 @@ p   { margin-top: var(--spacing-xs); }
     .pagination  { flex-wrap: wrap; }
     .page-info   { font-size: 0.8rem; width: 100%; order: -1; margin-bottom: 10px; }
 
-    .confirmation-content h3  { font-size: 1.2rem; }
+    .km-input-section { padding: var(--spacing-md) 15px; }
+    .car-selection    { padding: 12px 15px; }
+
+    .btn--normal { padding: 14px 20px; font-size: 1rem; }
+
+    .confirmation-content      { padding: 15px; }
+    .confirmation-content h3   { font-size: 1.2rem; }
     .confirmation-info,
-    .confirmation-correction  { padding: 15px; }
+    .confirmation-correction   { padding: 12px 15px; }
 }
 
 @media (hover: none) {

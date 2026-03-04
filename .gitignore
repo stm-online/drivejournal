@@ -2,6 +2,7 @@
 /data/*.json
 /uploads/*
 !uploads/.gitkeep
+/gitignore/
 
 # PHP temporäre Dateien
 *.log
