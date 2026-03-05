@@ -149,5 +149,16 @@
         "start_km": 157200,
         "start_source": "open-start",
         "linked_trip_id": 13
+    },
+    {
+        "id": 15,
+        "user_id": 2,
+        "car_id": 1,
+        "km": 158000,
+        "type": "end",
+        "timestamp": "2026-03-05 13:30:39",
+        "start_km": 157210,
+        "start_source": "history-guess",
+        "linked_trip_id": 14
     }
 ]
