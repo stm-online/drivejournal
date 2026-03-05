@@ -1,4 +1,4 @@
-﻿@import url('colors.css');
+﻿@import url('colors_v001.css');
 
 /* ============================================================
    1. Reset / Base
@@ -496,16 +496,20 @@ p   { margin-top: var(--spacing-xs); }
     margin-bottom: -2px;
 }
 
-.car-tab:hover,
 .car-tab.active {
-    background: var(--tab-color);
-    color: white;
-}
-
-.car-tab.active {
-    border-bottom-color: var(--tab-color);
+    color: var(--color-primary);
+    background: var(--background-primary);
+    border-bottom-color: var(--accent-color);
     font-weight: 600;
 }
+
+.car-tab:hover {
+    color: var(--color-primary);
+    background: var(--background-secondary);
+    border-bottom-color: var(--accent-color);
+    font-weight: 600;
+}
+
 
 .car-tab-contents { position: relative; }
 

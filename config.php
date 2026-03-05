@@ -44,4 +44,3 @@ define('ADMIN_PASSWORD', 'admin123');
 function checkAdmin() {
     return isset($_SESSION['admin']) && $_SESSION['admin'] === true;
 }
-?>

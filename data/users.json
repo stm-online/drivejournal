@@ -15,5 +15,11 @@
         "name": "Heinz",
         "token": "ea768613199d590c",
         "email": "heinz@mail.de"
+    },
+    {
+        "id": 6,
+        "name": "Testuser 2",
+        "token": "8862b1ab88ed01c9",
+        "email": ""
     }
 ]

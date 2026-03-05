@@ -92,8 +92,15 @@
             totalKm += userKm;
             if (car.cost_per_km) totalCost += userKm * car.cost_per_km;
             if (car.cost_per_month) {
-                const monthCost = prorateMonthCost(car, bounds.start, bounds.end);
-                const share = (totalKmCar > 0) ? (userKm / totalKmCar) : (userKm > 0 ? 1.0 : 0.0);
+                // Weekly view uses monthly/4, monthly view uses full month; default to prorated span
+                let monthCost = prorateMonthCost(car, bounds.start, bounds.end);
+                // If bounds length suggests a week (start and end within same calendar week), approximate by month/4
+                const days = Math.floor((bounds.end.getTime() - bounds.start.getTime())/86400000) + 1;
+                if (days <= 8) {
+                    monthCost = (car.cost_per_month || 0) / 4.0;
+                }
+                const numUsers = (typeof userMap !== 'undefined') ? Object.keys(userMap).length : 0;
+                const share = numUsers > 0 ? (1.0 / numUsers) : 0.0;
                 totalCost += monthCost * share;
             }
         });
@@ -188,8 +195,18 @@
                 if (car.cost_per_km) cost += userKm * car.cost_per_km;
                 if (car.cost_per_month) {
                     const bounds = getPeriodBounds(p);
-                    const monthCost = prorateMonthCost(car, bounds.start, bounds.end);
-                    const share = (totalKmCar>0) ? (userKm/totalKmCar) : (userKm>0 ? 1.0 : 0.0);
+                    // For weekly period show monthly/4, for month show full month, otherwise prorated
+                    let monthCost;
+                    if (p === 'week') {
+                        monthCost = (car.cost_per_month || 0) / 4.0;
+                    } else if (p === 'month') {
+                        // prorateMonthCost over the month bounds will equal full month
+                        monthCost = prorateMonthCost(car, bounds.start, bounds.end);
+                    } else {
+                        monthCost = prorateMonthCost(car, bounds.start, bounds.end);
+                    }
+                    const numUsers = (typeof userMap !== 'undefined') ? Object.keys(userMap).length : 0;
+                    const share = numUsers > 0 ? (1.0 / numUsers) : 0.0;
                     cost += monthCost * share;
                 }
                 perCar[cid] = perCar[cid] || { carName: car.name, km:{}, totalKm:{}, cost:{}, car: car };

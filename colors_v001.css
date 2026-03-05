@@ -10,6 +10,7 @@
 
     /* Backgrounds */
     --bg-color: #FFFFFF;
+    /* For Test-Env: --bg-color: #FFFFAA; */
     --background-card: #E9E9E9;
     --background-surface: var(--bg-color);
     --background-table-head: #ACBAC4;
@@ -38,7 +39,8 @@
     --background-critical: var(--important-color);
 
     /* Tab accent */
-    --tab-color: #5a7a6a;
+    --tab-color: var(--color-primary);
+    --tab-background: var(--primary-color);
 
     /* Border radius scale */
     --radius-sm: 2px;

@@ -16,7 +16,10 @@ function loadTripsForCar($carId) {
 function loadAllTrips() {
     $allTrips = [];
     $files = glob(DATA_DIR . 'trips_*.json');
-    
+    if ($files === false) {
+        $files = [];
+    }
+
     foreach ($files as $file) {
         $trips = loadJSON($file);
         $allTrips = array_merge($allTrips, $trips);
@@ -360,27 +363,27 @@ function render_trip_history_ui($tripsByCar, $cars, $users, $currentUserId = nul
  * Rendert das Bestätigungs-Dialog-HTML (versteckt).
  */
 function render_confirmation_dialog() {
-    echo "<div class=\"confirmation-section id=\"confirmation-dialog\" hidden>\n";
-    echo "  <div class=\"confirmation-content\">\n";
-    echo "    <div class=\"confirmation-info\">\n";
-    echo "      <h3 id=\"confirm-title\">Fahrt bestätigen</h3>\n";
-    echo "      <div class=\"confirmation-details\">\n";
-    echo "        <p><strong id=\"confirm-car-name\"></strong></p>\n";
-    echo "        <p><span id=\"confirm-distance-label\">Gefahrene KM:</span> <strong id=\"confirm-distance\"></strong></p>\n";
-    echo "        <p class=\"confirm-last-entry id=\"confirm-last-entry\" small></p>\n";
-    echo "      </div>\n";
-    echo "      <div class=\"confirmation-actions\">\n";
-    echo "        <button class=\"btn id=\"btn-confirm-ok\" btn--primary btn--normal>OK</button>\n";
-    echo "        <div class=\"confirmation-correction\">\n";
-    echo "          <label for=\"correction-km\">Korrektur - Gefahrene KM:</label>\n";
-    echo "          <input id=\"correction-km\" type=\"number\" inputmode=\"numeric\" pattern=\"[0-9]*\" placeholder=\"Gefahrene KM>\n";
-    echo "          <button class=\"btn id=\"btn-confirm-correction\" btn--critical btn--normal>Korrektur</button>\n";
-    echo "        </div>\n";
-    echo "        <button class=\"btn id=\"btn-confirm-cancel\" btn--secondary btn--normal>Abbrechen</button>\n";
-    echo "      </div>\n";
-    echo "    </div>\n";
-    echo "  </div>\n";
-    echo "</div>\n";
+    echo '<div class="confirmation-section" id="confirmation-dialog" hidden>' . "\n";
+    echo '  <div class="confirmation-content">' . "\n";
+    echo '    <div class="confirmation-info">' . "\n";
+    echo '      <h3 id="confirm-title">Fahrt bestätigen</h3>' . "\n";
+    echo '      <div class="confirmation-details">' . "\n";
+    echo '        <p><strong id="confirm-car-name"></strong></p>' . "\n";
+    echo '        <p><span id="confirm-distance-label">Gefahrene KM:</span> <strong id="confirm-distance"></strong></p>' . "\n";
+    echo '        <p class="confirm-last-entry small" id="confirm-last-entry"></p>' . "\n";
+    echo '      </div>' . "\n";
+    echo '      <div class="confirmation-actions">' . "\n";
+    echo '        <button class="btn btn--primary btn--normal" id="btn-confirm-ok">OK</button>' . "\n";
+    echo '        <div class="confirmation-correction">' . "\n";
+    echo '          <label for="correction-km">Korrektur - Gefahrene KM:</label>' . "\n";
+    echo '          <input id="correction-km" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Gefahrene KM">' . "\n";
+    echo '          <button class="btn btn--critical btn--normal" id="btn-confirm-correction">Korrektur</button>' . "\n";
+    echo '        </div>' . "\n";
+    echo '        <button class="btn btn--secondary btn--normal" id="btn-confirm-cancel">Abbrechen</button>' . "\n";
+    echo '      </div>' . "\n";
+    echo '    </div>' . "\n";
+    echo '  </div>' . "\n";
+    echo '</div>' . "\n";
 }
 
 /**
@@ -438,5 +441,3 @@ function render_app_data_script($users, $cars, $currentUserId = null, $isAdmin =
     echo "const carMap = " . json_encode($carMap, JSON_UNESCAPED_UNICODE) . ";\n";
     echo "</script>\n";
 }
-?>
-

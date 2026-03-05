@@ -609,4 +609,3 @@ echo json_encode([
     'success' => false,
     'message' => 'Unbekannte Aktion'
 ]);
-?>

@@ -1,4 +1,9 @@
-﻿<?php
+<?php
+// Fehlerausgabe aktivieren (zum Debuggen auf dem Webspace – nach Diagnose wieder entfernen)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once 'config.php';
 require_once 'functions.php';
 
@@ -8,14 +13,22 @@ header('Pragma: no-cache');
 header('Expires: 0');
 
 // Login-Prüfung
+// Hilfsfunktion: absolute URL zur aktuellen Seite
+function selfUrl() {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host   = $_SERVER['HTTP_HOST'];
+    $script = $_SERVER['PHP_SELF'];
+    return $scheme . '://' . $host . $script;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     if ($_POST['password'] === ADMIN_PASSWORD) {
         $_SESSION['admin'] = true;
-        header('Location: admin.php');
+        header('Location: ' . selfUrl());
         exit;
     } else {
         $_SESSION['admin_login_error'] = 'Falsches Passwort!';
-        header('Location: admin.php');
+        header('Location: ' . selfUrl());
         exit;
     }
 }
@@ -23,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 // Logout
 if (isset($_GET['logout'])) {
     unset($_SESSION['admin']);
-    header('Location: admin.php');
+    header('Location: ' . selfUrl());
     exit;
 }
 
@@ -41,7 +54,7 @@ if (!checkAdmin()) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Admin Login</title>
-        <link rel="stylesheet" href="styles.css?v=<?php echo filemtime(__DIR__ . '/styles.css'); ?>">
+        <link rel="stylesheet" href="styles_v001.css">
     </head>
     <body>
         <div class="container">
@@ -98,7 +111,7 @@ foreach ($trips as $trip) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DriveJournal - Admin</title>
-    <link rel="stylesheet" href="styles.css?v=<?php echo filemtime(__DIR__ . '/styles.css'); ?>">
+    <link rel="stylesheet" href="styles_v001.css">
 </head>
 <body>
     <div class="container">
@@ -131,7 +144,7 @@ foreach ($trips as $trip) {
                         </div>
                         <div class="form_row">
                             <div class="label">Bild</div>
-                            <input class="input_text" type="file" name="image" accept="image/*">
+                            <input class="input_text input_text--lg" type="file" name="image" accept="image/*">
                         </div>
                         <div class="form_row">
                             <div class="label">€/km</div>
