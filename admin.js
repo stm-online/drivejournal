@@ -267,6 +267,9 @@ function startCarEdit(carId) {
     const costMonth = document.getElementById('car-cost-month-input-' + carId);
     if (costKm) { try { costKm.dataset.original = costKm.value; } catch (e) {} ; costKm.removeAttribute('disabled'); }
     if (costMonth) { try { costMonth.dataset.original = costMonth.value; } catch (e) {} ; costMonth.removeAttribute('disabled'); }
+    // enable remaining_range checkbox if present
+    const remainingInput = document.getElementById('car-remaining-range-input-' + carId);
+    if (remainingInput) { try { remainingInput.dataset.original = remainingInput.checked ? '1' : '0'; } catch (e) {} ; remainingInput.removeAttribute('disabled'); }
 }
 
 function cancelCarEdit(carId) {
@@ -288,6 +291,12 @@ function cancelCarEdit(carId) {
     if (costMonth && costMonth.dataset && typeof costMonth.dataset.original !== 'undefined') {
         costMonth.value = costMonth.dataset.original;
         costMonth.setAttribute('disabled', 'disabled');
+    }
+    // restore remaining_range checkbox
+    const remainingInput = document.getElementById('car-remaining-range-input-' + carId);
+    if (remainingInput && remainingInput.dataset && typeof remainingInput.dataset.original !== 'undefined') {
+        remainingInput.checked = remainingInput.dataset.original === '1';
+        remainingInput.setAttribute('disabled', 'disabled');
     }
 
     const editBtn = document.querySelector('[data-action="edit"][data-car-id="' + carId + '"]');
@@ -327,6 +336,11 @@ function saveCarEdit(carId) {
             if (!germanRegex.test(v)) { alert('€/Monat muss im Format 19,99 (max. 2 Nachkommastellen) sein'); return; }
             fd.append('cost_per_month', v.replace(',', '.'));
         }
+    }
+    // include remaining_range flag explicitly (1 or 0)
+    const remainingInput = document.getElementById('car-remaining-range-input-' + carId);
+    if (remainingInput) {
+        fd.append('remaining_range', remainingInput.checked ? '1' : '0');
     }
 
     fetch('api.php', { method: 'POST', body: fd })
@@ -374,6 +388,18 @@ function saveCarEdit(carId) {
                         try { costMonthInput.dataset.original = costMonthInput.value; } catch (e) {}
                     }
                 }
+                    // update remaining_range checkbox from server response
+                    const remainingInput = document.getElementById('car-remaining-range-input-' + carId);
+                    if (remainingInput) {
+                        if (d.car && typeof d.car.remaining_range !== 'undefined') {
+                            remainingInput.checked = !!d.car.remaining_range;
+                            try { remainingInput.dataset.original = remainingInput.checked ? '1' : '0'; } catch (e) {}
+                        } else {
+                            // if server didn't return value, keep current state
+                            try { remainingInput.dataset.original = remainingInput.checked ? '1' : '0'; } catch (e) {}
+                        }
+                        remainingInput.setAttribute('disabled', 'disabled');
+                    }
                 // hide success after 3s
                 setTimeout(() => { if (status) { status.className = 'status-message'; status.textContent = ''; } }, 3000);
             } else {

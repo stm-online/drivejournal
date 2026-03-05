@@ -1,4 +1,4 @@
-﻿@import url('colors_v001.css');
+@import url('colors_v002.css');
 
 /* ============================================================
    1. Reset / Base
@@ -252,6 +252,22 @@ p   { margin-top: var(--spacing-xs); }
     font-weight: 600;
     font-style: italic;
     font-size: 0.85rem;
+}
+
+.car-battery {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.battery-icons {
+    font-family: monospace;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+.battery-km {
+    font-size: 0.85rem; 
+    color: var(--text-light); 
 }
 
 
@@ -702,6 +718,14 @@ p   { margin-top: var(--spacing-xs); }
 }
 
 .confirm-last-entry { color: var(--text-light); }
+
+/* Remaining range picker — uses .active like .confirmation-section */
+.remaining-range-picker        { display: none; margin-top: 12px; flex-direction: column; gap: 8px; align-items: stretch; }
+.remaining-range-picker.active { display: flex; }
+.range-btns { display: flex; gap: 8px; }
+.range-btn { flex: 1 1 0; min-width: 0; padding: 10px; width: auto !important; border-radius: var(--radius-sm); font-weight: 700; }
+.btn--notselected { background: var(--bg-color); color: var(--text-light); border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+.range-btn.btn--secondary { color: var(--color-secondary); background: var(--background-secondary); }
 
 
 /* ============================================================

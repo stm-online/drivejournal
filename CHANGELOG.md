@@ -1,7 +1,11 @@
 # Changelog
 
+## 2026-03-05 - Restreichweite
+Erfassung und Darstellung der Restreichweite
+
 ## 2026-03-03 — KM/Kosten-Übersicht 
 Darstellung KM und Kosten auf Erfassungseite
+
 ## 2026-03-02 — CSS-Klassen zusammengeführt
 Gleichartige Klassen mit minimalem Unterschied wurden zu einer einzigen Klasse zusammengeführt. Alle PHP-, JS- und HTML-Dateien entsprechend angepasst. Dabei aufgefundene HTML-Ausgabe-Bugs in `functions.php` behoben.
 

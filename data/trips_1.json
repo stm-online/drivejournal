@@ -41,5 +41,113 @@
         "start_km": 14000,
         "start_source": "history-guess",
         "linked_trip_id": 3
+    },
+    {
+        "id": 5,
+        "user_id": 1,
+        "car_id": 1,
+        "km": 14600,
+        "type": "end",
+        "timestamp": "2026-03-05 11:35:36",
+        "start_km": 14500,
+        "start_source": "history-guess",
+        "linked_trip_id": 4
+    },
+    {
+        "id": 6,
+        "user_id": 1,
+        "car_id": 1,
+        "km": 14700,
+        "type": "end",
+        "timestamp": "2026-03-05 11:36:20",
+        "start_km": 14600,
+        "start_source": "history-guess",
+        "linked_trip_id": 5
+    },
+    {
+        "id": 7,
+        "user_id": 1,
+        "car_id": 1,
+        "km": 14750,
+        "type": "end",
+        "timestamp": "2026-03-05 11:36:39",
+        "start_km": 14700,
+        "start_source": "history-guess",
+        "linked_trip_id": 6
+    },
+    {
+        "id": 8,
+        "user_id": 1,
+        "car_id": 1,
+        "km": 14780,
+        "type": "end",
+        "timestamp": "2026-03-05 11:46:54",
+        "start_km": 14755,
+        "start_source": "open-start",
+        "linked_trip_id": 7
+    },
+    {
+        "id": 9,
+        "user_id": 5,
+        "car_id": 1,
+        "km": 15000,
+        "type": "end",
+        "timestamp": "2026-03-05 12:22:41",
+        "start_km": 14780,
+        "start_source": "history-guess",
+        "linked_trip_id": 8
+    },
+    {
+        "id": 10,
+        "user_id": 5,
+        "car_id": 1,
+        "km": 15222,
+        "type": "end",
+        "timestamp": "2026-03-05 12:24:39",
+        "start_km": 15000,
+        "start_source": "history-guess",
+        "linked_trip_id": 9
+    },
+    {
+        "id": 11,
+        "user_id": 1,
+        "car_id": 1,
+        "km": 15300,
+        "type": "end",
+        "timestamp": "2026-03-05 12:53:41",
+        "start_km": 15300,
+        "start_source": "open-start",
+        "linked_trip_id": 10
+    },
+    {
+        "id": 12,
+        "user_id": 1,
+        "car_id": 1,
+        "km": 15600,
+        "type": "end",
+        "timestamp": "2026-03-05 12:53:56",
+        "start_km": 15575,
+        "start_source": "correction"
+    },
+    {
+        "id": 13,
+        "user_id": 1,
+        "car_id": 1,
+        "km": 15700,
+        "type": "end",
+        "timestamp": "2026-03-05 12:58:31",
+        "start_km": 15675,
+        "start_source": "correction"
+    },
+    {
+        "id": 14,
+        "user_id": 1,
+        "car_id": 1,
+        "km": 157210,
+        "type": "end",
+        "timestamp": "2026-03-05 13:03:10",
+        "start_km": 157200,
+        "start_source": "open-start",
+        "linked_trip_id": 13
     }
 ]

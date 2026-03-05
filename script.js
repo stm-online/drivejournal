@@ -9,6 +9,7 @@ let pendingActionKm = null;
 let selectedCarWasAuto = true; // true = last selection was automatic, false = user clicked
 let pendingStartWasCorrection = false;
 const statusMessageTimeouts = {};
+let pendingRemainingRangeValue = null; // null = picker hidden, '' = cleared, otherwise number/string
 
 function getStatusElement(targetId = 'status-message') {
     const target = document.getElementById(targetId);
@@ -283,7 +284,71 @@ function showConfirmationDialog(actionType, carName, value) {
 
     clearStatusMessage('status-message-dialog');
 
+    // Initialize remaining-range picker for this car (if enabled)
+    try {
+        const carObj = (typeof carsData !== 'undefined' && selectedCar && selectedCar.id) ? carsData.find(c => c.id === selectedCar.id) : null;
+        initRemainingPicker(carObj);
+    } catch (e) { /* ignore */ }
+
     // Hinweis: Fehler bewusst nicht automatisch löschen, damit Validierungswarnungen sichtbar bleiben
+}
+
+// Remaining-range picker helpers
+function clearRemainingPicker() {
+    pendingRemainingRangeValue = null;
+    const picker = document.getElementById('remaining-range-picker');
+    if (!picker) return;
+    picker.classList.remove('active');
+    picker.querySelectorAll('.range-btn').forEach(b => {
+        b.classList.remove('active');
+        b.classList.add('btn--notselected');
+        b.classList.remove('btn--secondary');
+    });
+}
+
+function initRemainingPicker(carObj) {
+    const picker = document.getElementById('remaining-range-picker');
+    if (!picker) return;
+    // only show when car configured
+    if (!carObj || !carObj.remaining_range) {
+        clearRemainingPicker();
+        return;
+    }
+    picker.classList.add('active');
+    // set initial value from carObj if provided
+    const initial = (typeof carObj.remaining_range_value !== 'undefined' && carObj.remaining_range_value !== null) ? String(carObj.remaining_range_value) : null;
+    pendingRemainingRangeValue = initial === null ? null : initial;
+    const btns = picker.querySelectorAll('.range-btn');
+    btns.forEach(b => {
+        const v = b.dataset.range;
+        b.classList.remove('active');
+        b.classList.remove('btn--secondary');
+        b.classList.add('btn--notselected');
+        b.onclick = function() {
+            // toggle behavior: clicking selected clears
+            if (b.classList.contains('active')) {
+                b.classList.remove('active');
+                b.classList.remove('btn--secondary');
+                b.classList.add('btn--notselected');
+                // indicate cleared selection to server
+                pendingRemainingRangeValue = '';
+                return;
+            }
+            // clear others
+            btns.forEach(x => { x.classList.remove('active'); x.classList.remove('btn--secondary'); x.classList.add('btn--notselected'); });
+            // set this one active
+            b.classList.add('active');
+            b.classList.remove('btn--notselected');
+            b.classList.add('btn--secondary');
+            pendingRemainingRangeValue = String(v);
+        };
+        // apply initial state
+        if (initial !== null && initial !== '' && String(v) === initial) {
+            b.classList.add('active');
+            b.classList.remove('btn--notselected');
+            b.classList.add('btn--secondary');
+        }
+    });
 }
 
 // Verstecke Bestätigungs-Dialog
@@ -296,6 +361,8 @@ function hideConfirmationDialog() {
     pendingStartKm = null;
     pendingActionKm = null;
     pendingActionType = null;
+    // clear remaining-range picker state
+    clearRemainingPicker();
 
     // Statusmeldungen beim Schließen löschen
     clearStatusMessage('status-message');
@@ -312,6 +379,8 @@ function hideDialogKeepError() {
     pendingDistance = null;
     pendingStartKm = null;
     pendingActionKm = null;
+    // clear picker state when hiding dialog due to validation
+    clearRemainingPicker();
 }
 
 // Hilfsfunktionen: Confirm-Buttons deaktivieren/aktivieren (nur Buttons, nicht die Box)
@@ -349,6 +418,18 @@ document.getElementById('btn-confirm-ok')?.addEventListener('click', function() 
     const startKm = pendingStartKm;
 
     // Buttons deaktivieren (nur Buttons, Box bleibt sichtbar)
+    // read current remaining-range picker state from DOM so it's included on save
+    try {
+        const picker = document.getElementById('remaining-range-picker');
+        if (picker) {
+            const activeBtn = picker.querySelector('.range-btn.active');
+            if (activeBtn) {
+                pendingRemainingRangeValue = activeBtn.dataset.range;
+            } else if (typeof pendingRemainingRangeValue === 'undefined' || pendingRemainingRangeValue === null) {
+                // leave as null (do not send) if nothing selected
+            }
+        }
+    } catch (e) {}
     disableConfirmButtons();
 
     // Nur start_km mitschicken, wenn der Nutzer eine Korrektur bestätigt hat
@@ -430,6 +511,10 @@ function saveTrip(km, type, startKm = null, statusTargetId = 'status-message') {
         if (selectedCar && selectedCar.last_trip_id !== undefined && selectedCar.last_trip_id !== null) {
             formData.append('last_trip_id', selectedCar.last_trip_id);
         }
+    }
+    // If remaining-range picker was shown/used (Start or End), send value ('' means clear)
+    if (typeof pendingRemainingRangeValue !== 'undefined' && pendingRemainingRangeValue !== null) {
+        formData.append('remaining_range_value', pendingRemainingRangeValue);
     }
     
     fetch('api.php', {

@@ -219,6 +219,19 @@ if ($action === 'save_trip') {
             $cars[$carIndex]['open_start_km'] = $km;
             $cars[$carIndex]['open_start_user'] = $userId;
             $cars[$carIndex]['open_start_ts'] = $newTrip['timestamp'];
+            // remaining_range_value: if provided, set or clear persistent remaining range value for this car
+            if (isset($_POST['remaining_range_value'])) {
+                $rr = $_POST['remaining_range_value'];
+                if ($rr === '' || $rr === '0') {
+                    if (isset($cars[$carIndex]['remaining_range_value'])) unset($cars[$carIndex]['remaining_range_value']);
+                } else {
+                    if (is_numeric($rr)) {
+                        $cars[$carIndex]['remaining_range_value'] = (int)$rr;
+                    } else {
+                        $cars[$carIndex]['remaining_range_value'] = $rr;
+                    }
+                }
+            }
         }
         saveJSON(CARS_FILE, $cars);
         echo json_encode([
@@ -264,6 +277,20 @@ if ($action === 'save_trip') {
 
             $existing = isset($cars[$carIndex]['current_km']) ? (float)$cars[$carIndex]['current_km'] : (isset($cars[$carIndex]['initial_km']) ? (float)$cars[$carIndex]['initial_km'] : 0);
             $cars[$carIndex]['current_km'] = max($existing, $km);
+            // remaining_range_value: if provided, set or clear persistent remaining range value for this car
+            if (isset($_POST['remaining_range_value'])) {
+                $rr = $_POST['remaining_range_value'];
+                if ($rr === '' || $rr === '0') {
+                    if (isset($cars[$carIndex]['remaining_range_value'])) unset($cars[$carIndex]['remaining_range_value']);
+                } else {
+                    // store normalized integer value if numeric
+                    if (is_numeric($rr)) {
+                        $cars[$carIndex]['remaining_range_value'] = (int)$rr;
+                    } else {
+                        $cars[$carIndex]['remaining_range_value'] = $rr;
+                    }
+                }
+            }
         }
         saveJSON(CARS_FILE, $cars);
     }
@@ -341,6 +368,15 @@ if ($action === 'add_car') {
         if (is_numeric($costMonth)) {
             $newCar['cost_per_month'] = (float)$costMonth;
         }
+    }
+    // remaining_range (checkbox) - treat presence/1 as true, otherwise false
+    $remaining = false;
+    if (isset($_POST['remaining_range'])) {
+        $val = $_POST['remaining_range'];
+        if ($val === '1' || $val === 'true' || $val === 'on' || $val === 1) $remaining = true;
+    }
+    if ($remaining) {
+        $newCar['remaining_range'] = true;
     }
     
     $cars[] = $newCar;
@@ -424,6 +460,15 @@ if ($action === 'edit_car') {
                     if (isset($cars[$i]['cost_per_month'])) unset($cars[$i]['cost_per_month']);
                 } elseif (is_numeric($val)) {
                     $cars[$i]['cost_per_month'] = (float)$val;
+                }
+            }
+            // remaining_range handling: if provided in POST, set or unset accordingly
+            $rawRemaining = isset($_POST['remaining_range']) ? $_POST['remaining_range'] : null;
+            if ($rawRemaining !== null) {
+                if ($rawRemaining === '1' || $rawRemaining === 'true' || $rawRemaining === 'on' || $rawRemaining === 1) {
+                    $cars[$i]['remaining_range'] = true;
+                } else {
+                    if (isset($cars[$i]['remaining_range'])) unset($cars[$i]['remaining_range']);
                 }
             }
             $found = true;

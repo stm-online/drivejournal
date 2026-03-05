@@ -54,7 +54,7 @@ if (!checkAdmin()) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Admin Login</title>
-        <link rel="stylesheet" href="styles_v001.css">
+        <link rel="stylesheet" href="styles_v002.css">
     </head>
     <body>
         <div class="container">
@@ -111,7 +111,7 @@ foreach ($trips as $trip) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DriveJournal - Admin</title>
-    <link rel="stylesheet" href="styles_v001.css">
+    <link rel="stylesheet" href="styles_v002.css">
 </head>
 <body>
     <div class="container">
@@ -153,6 +153,10 @@ foreach ($trips as $trip) {
                         <div class="form_row">
                             <div class="label">€/Monat</div>
                             <input class="input_text input_text--lg" type="text" name="cost_per_month" placeholder="z.B. 19,99">
+                        </div>
+                        <div class="form_row">
+                            <div class="label">Reichweite</div>
+                            <label class="checkbox-label"><input type="checkbox" name="remaining_range" value="1"> Erfassung Restreichweite</label>
                         </div>
                         <div class="form_row">
                             <div class="label"></div>
@@ -208,6 +212,11 @@ foreach ($trips as $trip) {
                                     <div>€/Monat</div>
                                     <?php $costMonth = isset($car['cost_per_month']) && $car['cost_per_month'] !== '' ? number_format((float)$car['cost_per_month'], 2, ',', '') : ''; ?>
                                     <input class="input_text" id="car-cost-month-input-<?= $car['id'] ?>" value="<?= htmlspecialchars($costMonth, ENT_QUOTES) ?>" disabled>
+                                </div>
+                                <div class="form_row">
+                                    <div>Reichweite</div>
+                                    <?php $remaining = !empty($car['remaining_range']); ?>
+                                    <label><input type="checkbox" id="car-remaining-range-input-<?= $car['id'] ?>" value="1" <?= $remaining ? 'checked' : '' ?> disabled> Erfassung Restreichweite</label>
                                 </div>
                             </div>
                         </div>

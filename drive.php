@@ -75,7 +75,7 @@ foreach ($cars as $car) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>DriveJournal - <?= htmlspecialchars($currentUser['name']) ?></title>
-    <link rel="stylesheet" href="styles_v001.css">
+    <link rel="stylesheet" href="styles_v002.css">
 </head>
 <body>
     <div class="container">
@@ -114,6 +114,24 @@ foreach ($cars as $car) {
                         <?php if (isset($car['open_start_km'])): ?>
                             <div class="car-open-start">Offene Fahrt<br><?= number_format($car['open_start_km'], 0, ',', '.') ?> km</div>
                         <?php endif; ?>
+
+                        <?php
+                            // Wenn eine persistente Restreichweite vorhanden ist, zeige eine stilisierte Batterie
+                            if (isset($car['remaining_range_value']) && $car['remaining_range_value'] !== null) {
+                                $rr = (int)$car['remaining_range_value'];
+                                if ($rr >= 100) { $filled = 4; $color = '#22C55E'; }
+                                elseif ($rr >= 75) { $filled = 3; $color = '#FACC15'; }
+                                elseif ($rr >= 50) { $filled = 2; $color = '#F97316'; }
+                                elseif ($rr >= 25) { $filled = 1; $color = '#EF4444'; }
+                                else { $filled = 0; $color = '#EF4444'; }
+                                $icons = str_repeat('▮', $filled) . str_repeat('▯', 4 - $filled);
+                                ?>
+                                <div class="car-battery">
+                                    <span class="battery-icons" style="color: <?= htmlspecialchars($color, ENT_QUOTES) ?>"><?= $icons ?></span>
+                                    <span class="battery-km"><?= number_format($rr, 0, ',', '.') ?> km</span>
+                                </div>
+                            <?php }
+                        ?>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -133,6 +151,15 @@ foreach ($cars as $car) {
                         <p><strong id="confirm-car-name"></strong></p>
                         <p><span id="confirm-distance-label">Gefahrene KM:</span> <strong id="confirm-distance"></strong></p>
                         <p class="confirm-last-entry small" id="confirm-last-entry"></p>
+                    </div>
+                    <div class="remaining-range-picker" id="remaining-range-picker">
+                        <label class="small">Restreichweite (KM)</label>
+                        <div class="range-btns">
+                            <button type="button" class="btn range-btn btn--notselected" data-range="25">25</button>
+                            <button type="button" class="btn range-btn btn--notselected" data-range="50">50</button>
+                            <button type="button" class="btn range-btn btn--notselected" data-range="75">75</button>
+                            <button type="button" class="btn range-btn btn--notselected" data-range="100">100</button>
+                        </div>
                     </div>
                     <div class="confirmation-actions">
                         <button class="btn btn--primary btn--normal" id="btn-confirm-ok">OK</button>

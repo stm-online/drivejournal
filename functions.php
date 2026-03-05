@@ -421,6 +421,8 @@ function render_app_data_script($users, $cars, $currentUserId = null, $isAdmin =
             'last_trip_id' => null,
             'cost_per_km' => isset($c['cost_per_km']) ? (float)$c['cost_per_km'] : null,
             'cost_per_month' => isset($c['cost_per_month']) ? (float)$c['cost_per_month'] : null,
+            'remaining_range' => !empty($c['remaining_range']),
+            'remaining_range_value' => isset($c['remaining_range_value']) ? $c['remaining_range_value'] : null,
         ];
         // try to find matching entry in tripsByCar to get last_trip_id/current_km if computed there
         foreach ($tripsByCar as $tb) {
