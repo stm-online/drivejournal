@@ -4,24 +4,29 @@ const ITEMS_PER_PAGE = 10;
 
 // Tab-Switching für Auto-Listen
 window.switchCarTab = function(carId) {
-    // Deaktiviere alle Tabs
-    document.querySelectorAll('.car-tab').forEach(tab => {
+    const selectedTab = document.querySelector(`.car-tab[data-car-id="${carId}"]`);
+    if (!selectedTab) return;
+
+    const tabsRoot = selectedTab.closest('.car-tabs');
+    if (!tabsRoot) return;
+    const historyRoot = tabsRoot.parentElement;
+    if (!historyRoot) return;
+
+    // Deaktiviere nur Tabs dieser Ebene
+    historyRoot.querySelectorAll(':scope > .car-tabs > .car-tab').forEach(tab => {
         tab.classList.remove('active');
     });
     
-    // Verstecke alle Tab-Inhalte
-    document.querySelectorAll('.tab-panel').forEach(content => {
+    // Verstecke nur Inhalte dieser Ebene
+    historyRoot.querySelectorAll(':scope > .car-tab-contents > .tab-panel').forEach(content => {
         content.classList.remove('active');
     });
     
     // Aktiviere gewählten Tab
-    const selectedTab = document.querySelector(`.car-tab[data-car-id="${carId}"]`);
-    if (selectedTab) {
-        selectedTab.classList.add('active');
-    }
+    selectedTab.classList.add('active');
     
     // Zeige gewählten Tab-Inhalt
-    const selectedContent = document.getElementById(`car-tab-${carId}`);
+    const selectedContent = historyRoot.querySelector(`#car-tab-${carId}`);
     if (selectedContent) {
         selectedContent.classList.add('active');
     }
@@ -48,10 +53,44 @@ function formatNumber(num) {
     return new Intl.NumberFormat('de-DE').format(num);
 }
 
+function parseKmFromTd(row) {
+    if (!row) return null;
+    const el = row.querySelector('.trip-km-stand');
+    if (!el) return null;
+    const txt = el.textContent || '';
+    const digits = txt.replace(/[^0-9]/g, '');
+    return digits ? parseInt(digits, 10) : null;
+}
+
+function findNeighborKm(startRow, direction) {
+    // direction: -1 = up (previous), +1 = down (next)
+    let cur = startRow;
+    while (cur) {
+        cur = direction === -1 ? cur.previousElementSibling : cur.nextElementSibling;
+        if (!cur) break;
+        // skip rows that are correction rows or other structural rows
+        if (cur.classList && cur.classList.contains('gap-correction-row')) continue;
+        const v = parseKmFromTd(cur);
+        if (v !== null) return v;
+    }
+    return null;
+}
+
+function parseKmInput(val) {
+    if (val === null || val === undefined) return null;
+    const s = String(val).trim();
+    if (s === '') return null;
+    const digits = s.replace(/[^0-9\-\.]/g, '');
+    if (digits === '') return null;
+    const n = parseFloat(digits);
+    return Number.isFinite(n) ? n : null;
+}
+
 // Paging-Klasse
 class TripsPager {
     constructor(trips, bodyId, paginationId, renderRowFn) {
         this.trips = trips;
+        this.bodyId = bodyId;
         this.bodyElement = document.getElementById(bodyId);
         this.paginationElement = document.getElementById(paginationId);
         this.renderRowFn = renderRowFn;
@@ -86,47 +125,82 @@ class TripsPager {
             if (trip.is_initial) {
                 row.classList.add('trip-initial');
             }
+
+            // Für Admin-Bearbeitung echte Fahrten im "Alle Fahrzeuge"-Tab markieren.
+            if (
+                this.bodyId &&
+                this.bodyId.startsWith('car-trips-body-') &&
+                !trip.is_gap &&
+                trip.id !== undefined &&
+                trip.id !== null
+            ) {
+                row.setAttribute('data-trip-id', String(trip.id));
+                row.setAttribute('data-trip-car-id', String(trip.car_id));
+                if (trip.km !== undefined && trip.km !== null) {
+                    row.setAttribute('data-trip-km', String(trip.km));
+                }
+                if (trip.start_km !== undefined && trip.start_km !== null) {
+                    row.setAttribute('data-trip-start-km', String(trip.start_km));
+                }
+                if (trip.user_id !== undefined && trip.user_id !== null) {
+                    row.setAttribute('data-trip-user-id', String(trip.user_id));
+                }
+                if (typeof isAdmin !== 'undefined' && isAdmin && !trip.is_initial) {
+                    row.classList.add('trip-editable');
+                }
+            }
             
             row.innerHTML = this.renderRowFn(trip);
             this.bodyElement.appendChild(row);
         });
+
+        // Keep the "Alle Fahrzeuge" tables visually stable with always 10 rows.
+        if (this.bodyId && this.bodyId.startsWith('car-trips-body-')) {
+            const missingRows = ITEMS_PER_PAGE - pageTrips.length;
+            for (let i = 0; i < missingRows; i++) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td>&nbsp;</td><td></td><td></td><td></td>';
+                this.bodyElement.appendChild(emptyRow);
+            }
+        }
     }
     
     renderPagination() {
         if (!this.paginationElement) return;
-        
-        // Wenn nur eine Seite, verstecke Pagination
-        if (this.totalPages <= 1) {
-            this.paginationElement.classList.add('hidden');
-            return;
-        }
 
         this.paginationElement.classList.remove('hidden');
         this.paginationElement.innerHTML = '';
         
         // Zurück-Button
+        const backBtn = document.createElement('button');
         if (this.currentPage > 1) {
-                const backBtn = document.createElement('button');
-                backBtn.className = 'btn btn--primary btn--small';
-            backBtn.textContent = '← Zurück';
+            backBtn.className = 'btn btn--primary btn--small';
             backBtn.onclick = () => this.goToPage(this.currentPage - 1);
-            this.paginationElement.appendChild(backBtn);
+        } else {
+            backBtn.className = 'btn btn--notselected btn--small';
+            backBtn.disabled = true;
         }
+        backBtn.textContent = '← Zurück';
+        this.paginationElement.appendChild(backBtn);
         
         // Seiteninformation
         const info = document.createElement('span');
         info.className = 'page-info';
-        info.textContent = `Seite ${this.currentPage} von ${this.totalPages}`;
+        const total = this.totalPages > 0 ? this.totalPages : 1;
+        info.textContent = `Seite ${this.currentPage} von ${total}`;
         this.paginationElement.appendChild(info);
         
         // Weiter-Button
+        const nextBtn = document.createElement('button');
         if (this.currentPage < this.totalPages) {
-            const nextBtn = document.createElement('button');
             nextBtn.className = 'btn btn--primary btn--small';
-            nextBtn.textContent = 'Weiter →';
             nextBtn.onclick = () => this.goToPage(this.currentPage + 1);
-            this.paginationElement.appendChild(nextBtn);
+        } else {
+            nextBtn.className = 'btn btn--notselected btn--small';
+            nextBtn.disabled = true;
         }
+        nextBtn.textContent = 'Weiter →';
+        this.paginationElement.appendChild(nextBtn);
     }
     
     goToPage(page) {
@@ -230,30 +304,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Determine upper and lower bounds by searching nearest sibling rows
-        function parseKmFromTd(row) {
-            if (!row) return null;
-            const el = row.querySelector('.trip-km-stand');
-            if (!el) return null;
-            const txt = el.textContent || '';
-            const digits = txt.replace(/[^0-9]/g, '');
-            return digits ? parseInt(digits, 10) : null;
-        }
-
-        function findNeighborKm(startRow, direction) {
-            // direction: -1 = up (previous), +1 = down (next)
-            let cur = startRow;
-            while (cur) {
-                cur = direction === -1 ? cur.previousElementSibling : cur.nextElementSibling;
-                if (!cur) break;
-                // skip rows that are correction rows or other structural rows
-                if (cur.classList && cur.classList.contains('gap-correction-row')) continue;
-                const v = parseKmFromTd(cur);
-                if (v !== null) return v;
-            }
-            return null;
-        }
-
         const upperBound = findNeighborKm(tr, -1); // nearest KM above (should be larger)
         const lowerBound = findNeighborKm(tr, +1); // nearest KM below (should be smaller)
 
@@ -315,33 +365,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (e) {}
 
-        // Robust parsing: strip non-digit characters (thousand separators, etc.)
-        function parseKmInput(val) {
-            if (val === null || val === undefined) return null;
-            const s = String(val).trim();
-            if (s === '') return null;
-            const digits = s.replace(/[^0-9\-\.]/g, '');
-            if (digits === '') return null;
-            const n = parseFloat(digits);
-            return Number.isFinite(n) ? n : null;
-        }
-
-
-
-
         captureBtn.addEventListener('click', function() {
             msgEl.textContent = '';
-
-            // Robust parsing: strip non-digit characters (thousand separators, etc.)
-            function parseKmInput(val) {
-                if (val === null || val === undefined) return null;
-                const s = String(val).trim();
-                if (s === '') return null;
-                const digits = s.replace(/[^0-9\-\.]/g, '');
-                if (digits === '') return null;
-                const n = parseFloat(digits);
-                return Number.isFinite(n) ? n : null;
-            }
 
             const endKm = parseKmInput(inputEnd.value);
             const startKm = parseKmInput(inputStart.value);
@@ -448,6 +473,199 @@ document.addEventListener('DOMContentLoaded', function() {
                     msgEl.classList.remove('msg-success');
                     msgEl.classList.add('msg-warning');
                     msgEl.textContent = 'Netzwerkfehler';
+                });
+        });
+    });
+
+    // Delegation: Admin kann vorhandene Fahrten direkt aus der Tabelle bearbeiten
+    document.addEventListener('click', function(e) {
+        if (!(typeof isAdmin !== 'undefined' && isAdmin)) return;
+
+        if (
+            e.target.closest('.btn-gap-correction') ||
+            e.target.closest('.btn-gap-capture') ||
+            e.target.closest('.btn-trip-edit-save') ||
+            e.target.closest('.corr-user') ||
+            e.target.closest('input') ||
+            e.target.closest('select') ||
+            e.target.closest('button')
+        ) {
+            return;
+        }
+
+        const tr = e.target.closest('tr');
+        if (!tr) return;
+        if (tr.classList.contains('gap-correction-row')) return;
+        if (tr.classList.contains('trip-initial')) return;
+
+        const tbody = tr.parentElement;
+        if (!tbody || !tbody.id || !tbody.id.startsWith('car-trips-body-')) return;
+
+        const tripId = tr.getAttribute('data-trip-id');
+        const carId = tr.getAttribute('data-trip-car-id');
+        if (!tripId || !carId) return;
+
+        // Bereits geoeffnete Bearbeitungsbox fuer diese Zeile umschalten
+        const sameNext = tr.nextElementSibling;
+        if (sameNext && sameNext.classList.contains('gap-correction-row') && sameNext.getAttribute('data-edit-mode') === 'trip-edit') {
+            tr.classList.remove('trip-gap');
+            sameNext.remove();
+            return;
+        }
+
+        // Andere geoeffnete Boxen schliessen
+        document.querySelectorAll('.gap-correction-row[data-edit-mode="trip-edit"]').forEach(row => {
+            const prev = row.previousElementSibling;
+            if (prev) prev.classList.remove('trip-gap');
+            row.remove();
+        });
+
+        const upperBound = findNeighborKm(tr, -1);
+        const lowerBound = findNeighborKm(tr, +1);
+
+        const currentKmRaw = tr.getAttribute('data-trip-km');
+        const currentStartRaw = tr.getAttribute('data-trip-start-km');
+        const currentUserId = tr.getAttribute('data-trip-user-id') || '';
+
+        const preEnd = currentKmRaw ? parseInt(String(currentKmRaw).replace(/[^0-9]/g, ''), 10) : '';
+        const preStart = currentStartRaw ? parseInt(String(currentStartRaw).replace(/[^0-9]/g, ''), 10) : (lowerBound !== null ? lowerBound : '');
+
+        tr.classList.add('trip-gap');
+
+        const correctionRow = document.createElement('tr');
+        correctionRow.classList.add('gap-correction-row');
+        correctionRow.setAttribute('data-edit-mode', 'trip-edit');
+        const cell = document.createElement('td');
+        cell.colSpan = 4;
+
+        let userSelectHtml = '';
+        try {
+            const entries = Object.entries(userMap || {});
+            const options = entries
+                .map(eu => {
+                    const isSelected = String(eu[0]) === String(currentUserId) ? ' selected' : '';
+                    return `<option value="${eu[0]}"${isSelected}>${eu[1]}</option>`;
+                })
+                .join('');
+            userSelectHtml = `<label>Benutzer <select class="corr-user">${options}</select></label>`;
+        } catch (err) {}
+
+        cell.innerHTML = `
+            <div class="gap-correction-box">
+                <div class="corr-row">
+                    <label>Start KM <input type="number" class="corr-start" value="${preStart !== '' ? preStart : ''}" inputmode="numeric"></label>
+                    <label>Ende KM <input type="number" class="corr-end" value="${preEnd !== '' ? preEnd : ''}" inputmode="numeric"></label>
+                    ${userSelectHtml}
+                    <button type="button" class="btn btn--primary btn--small btn-trip-edit-save">speichern</button>
+                </div>
+                <div class="corr-msg"></div>
+                <div class="debug-bounds"></div>
+            </div>
+        `;
+        correctionRow.appendChild(cell);
+        tr.parentNode.insertBefore(correctionRow, tr.nextSibling);
+
+        const saveBtn = correctionRow.querySelector('.btn-trip-edit-save');
+        const inputEnd = correctionRow.querySelector('.corr-end');
+        const inputStart = correctionRow.querySelector('.corr-start');
+        const msgEl = correctionRow.querySelector('.corr-msg');
+
+        try {
+            const minAllowed = lowerBound !== null ? Number(lowerBound) : null;
+            const maxAllowed = upperBound !== null ? Number(upperBound) : null;
+            if (minAllowed !== null && Number.isFinite(minAllowed)) {
+                inputStart.setAttribute('min', String(minAllowed));
+                inputEnd.setAttribute('min', String(minAllowed));
+            }
+            if (maxAllowed !== null && Number.isFinite(maxAllowed)) {
+                inputStart.setAttribute('max', String(maxAllowed));
+                inputEnd.setAttribute('max', String(maxAllowed));
+            }
+        } catch (err) {}
+
+        saveBtn.addEventListener('click', function() {
+            msgEl.textContent = '';
+
+            const endKm = parseKmInput(inputEnd.value);
+            const startKm = parseKmInput(inputStart.value);
+
+            if (startKm === null || endKm === null) {
+                msgEl.textContent = 'Bitte Start- und Ende-KM ausfüllen.';
+                return;
+            }
+            if (startKm >= endKm) {
+                msgEl.textContent = 'Start KM muss kleiner als Ende KM sein.';
+                return;
+            }
+
+            const sMin = inputStart.getAttribute('min');
+            const sMax = inputStart.getAttribute('max');
+            const eMin = inputEnd.getAttribute('min');
+            const eMax = inputEnd.getAttribute('max');
+
+            if (sMin !== null) {
+                const v = Number(sMin);
+                if (Number.isFinite(v) && startKm < v) {
+                    msgEl.textContent = `Start KM muss mindestens ${v} sein.`;
+                    return;
+                }
+            }
+            if (sMax !== null) {
+                const v = Number(sMax);
+                if (Number.isFinite(v) && startKm > v) {
+                    msgEl.textContent = `Start KM darf maximal ${v} sein.`;
+                    return;
+                }
+            }
+            if (eMin !== null) {
+                const v = Number(eMin);
+                if (Number.isFinite(v) && endKm < v) {
+                    msgEl.textContent = `Ende KM muss mindestens ${v} sein.`;
+                    return;
+                }
+            }
+            if (eMax !== null) {
+                const v = Number(eMax);
+                if (Number.isFinite(v) && endKm > v) {
+                    msgEl.textContent = `Ende KM darf maximal ${v} sein.`;
+                    return;
+                }
+            }
+
+            const fd = new FormData();
+            fd.append('action', 'update_trip');
+            fd.append('trip_id', tripId);
+            fd.append('car_id', carId);
+            fd.append('km', endKm);
+            fd.append('start_km', startKm);
+            const corrUserEl = correctionRow.querySelector('.corr-user');
+            if (corrUserEl && corrUserEl.value) {
+                fd.append('user_id', corrUserEl.value);
+            }
+
+            saveBtn.disabled = true;
+
+            fetch('api.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(resp => {
+                    if (resp && resp.success) {
+                        msgEl.classList.remove('msg-warning');
+                        msgEl.classList.add('msg-success');
+                        msgEl.textContent = 'Eintrag gespeichert. Seite wird neu geladen.';
+                        setTimeout(() => window.location.reload(), 1200);
+                    } else {
+                        const m = (resp && resp.message) ? resp.message : 'Fehler beim Speichern';
+                        msgEl.classList.remove('msg-success');
+                        msgEl.classList.add('msg-warning');
+                        msgEl.textContent = m;
+                        saveBtn.disabled = false;
+                    }
+                })
+                .catch(() => {
+                    msgEl.classList.remove('msg-success');
+                    msgEl.classList.add('msg-warning');
+                    msgEl.textContent = 'Netzwerkfehler';
+                    saveBtn.disabled = false;
                 });
         });
     });

@@ -337,6 +337,7 @@ function render_trip_history_ui($tripsByCar, $cars, $users, $currentUserId = nul
         $active = $index === 0 ? 'active' : '';
         $id = $carData['car']['id'];
         echo "        <div class=\"tab-panel $active\" id=\"car-tab-$id\">\n";
+        echo "            <div class=\"car-tabs\" id=\"car-time-tabs-$id\"></div>\n";
         echo "            <table class=\"table-inline\">\n";
         echo "                <thead>\n";
         echo "                    <tr>\n";

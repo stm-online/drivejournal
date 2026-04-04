@@ -54,7 +54,7 @@ if (!checkAdmin()) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Admin Login</title>
-        <link rel="stylesheet" href="styles_v002.css">
+        <link rel="stylesheet" href="styles_v003.css">
     </head>
     <body>
         <div class="container">
@@ -111,13 +111,13 @@ foreach ($trips as $trip) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DriveJournal - Admin</title>
-    <link rel="stylesheet" href="styles_v002.css">
+    <link rel="stylesheet" href="styles_v003.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
             <img src="logo.png" alt="DriveJournal Logo" class="header-logo">
-            <a href="?logout" class="btn btn--appcontrol btn--small">Abmelden</a>
+            <button class="btn btn--appcontrol btn--small" onclick="location.href='?logout'">Abmelden</button>
             <h1>Admin-Panel</h1>
         </div>
 
@@ -301,105 +301,37 @@ foreach ($trips as $trip) {
 
         <!-- Statistiken Tab -->
         <div class="tab-panel" id="tab-stats">
-            <?php
-            // Bilde Trips per Car inklusive Lücken
-            $tripsByCar = buildTripsByCar($cars, $trips);
-            $tripsByCarMap = [];
-            foreach ($tripsByCar as $item) {
-                $tripsByCarMap[$item['car']['id']] = $item['trips'];
-            }
+            <div class="trips-history" id="user-cost-summary-admin">
+                <h3>💶 Kosten je Nutzer</h3>
+                <table class="table-inline">
+                    <thead>
+                        <tr>
+                            <th class="col-left">Benutzer</th>
+                            <th class="col-right" id="user-cost-month-label-1">Monat 1</th>
+                            <th class="col-right" id="user-cost-month-label-2">Monat 2</th>
+                            <th class="col-right" id="user-cost-month-label-3">Monat 3</th>
+                            <th class="col-right" id="user-cost-year-label">Jahr</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-cost-summary-body"></tbody>
+                    <tfoot>
+                        <tr class="summary-total">
+                            <td><strong>Gesamt</strong></td>
+                            <td class="col-right"><strong id="user-cost-total-prev3">0,00 €</strong></td>
+                            <td class="col-right"><strong id="user-cost-total-prev2">0,00 €</strong></td>
+                            <td class="col-right"><strong id="user-cost-total-prev1">0,00 €</strong></td>
+                            <td class="col-right"><strong id="user-cost-total-year">0,00 €</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
 
-            if (empty($cars)) {
+            <?php
+            $tripsByCar = buildTripsByCar($cars, $trips);
+            if (empty($tripsByCar)) {
                 echo '<p class="empty">Keine Autos vorhanden.</p>';
             } else {
-                ?>
-                <div class="item-list">
-                <?php
-                foreach ($cars as $car) {
-                    $carId = $car['id'];
-                    $carTrips = $tripsByCarMap[$carId] ?? [];
-
-                    // Aggregiere KM pro Fahrer (inkl. unknown = 0)
-                    $perUserKm = [];
-                    $totalKm = 0.0;
-                    foreach ($carTrips as $t) {
-                        // nur 'end' und 'gap' tragen distance bei
-                        if (!isset($t['distance'])) continue;
-                        $dist = (float)$t['distance'];
-                        $uid = isset($t['user_id']) && $t['user_id'] !== null ? $t['user_id'] : 0; // 0 = Unbekannt
-                        if (!isset($perUserKm[$uid])) $perUserKm[$uid] = 0.0;
-                        $perUserKm[$uid] += $dist;
-                        $totalKm += $dist;
-                    }
-
-                    // Kostenrate (€/km) falls angegeben
-                    $rate = isset($car['cost_per_km']) ? (float)$car['cost_per_km'] : 0.0;
-                    $totalCost = $totalKm * $rate;
-                    ?>
-                    <div class="admin-item">
-                        <?php if (!empty($car['image'])): ?>
-                            <img id="car-stat-img-<?= $carId ?>" src="<?= htmlspecialchars($car['image']) ?>" alt="<?= htmlspecialchars($car['name']) ?>">
-                        <?php else: ?>
-                            <div id="car-stat-placeholder-<?= $carId ?>" class="car-placeholder">🚗</div>
-                        <?php endif; ?>
-                        <div class="admin-info">
-                            <div class="form_grid">
-                                <div class="form_row form_row--wide">
-                                    <div>Name</div>
-                                    <input class="input_text input_text--bold" id="car-stat-name-<?= $carId ?>" value="<?= htmlspecialchars($car['name'], ENT_QUOTES) ?>" disabled>
-                                </div>
-                                <div class="form_row form_row--wide">
-                                    <div>Gefahrene KM</div>
-                                    <input class="input_text" id="car-stat-km-<?= $carId ?>" value="<?= number_format($totalKm, 0, ',', '.') ?> km" disabled>
-                                </div>
-                                <div class="form_row form_row--wide">
-                                    <div>Gesamtkosten</div>
-                                    <input class="input_text" id="car-stat-cost-<?= $carId ?>" value="<?= number_format($totalCost, 2, ',', '.') ?> €" disabled>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="admin-item">    
-                        <table class="table-inline table-inline--relaxed" style="width:100%;">
-                            <thead>
-                                <tr>
-                                    <th>Fahrer</th>
-                                    <th class="text-center">KM</th>
-                                    <th class="text-right">Kosten</th>
-                                    <th class="text-right">Anteil</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                    // Sortiere Nutzer nach gefahrenen KM absteigend
-                                    arsort($perUserKm);
-                                    if (empty($perUserKm)) {
-                                        echo '<tr><td colspan="4" class="empty">Noch keine Fahrten erfasst.</td></tr>';
-                                    } else {
-                                        foreach ($perUserKm as $uid => $km) {
-                                            $name = 'Unbekannt';
-                                            if ($uid !== 0) {
-                                                foreach ($users as $u) { if ($u['id'] == $uid) { $name = $u['name']; break; } }
-                                            }
-                                            $userCost = $km * $rate;
-                                            $percent = $totalKm > 0 ? ($km / $totalKm) * 100 : 0;
-                                            echo '<tr>';
-                                            echo '<td>' . htmlspecialchars($name) . '</td>';
-                                            echo '<td class="text-center">' . number_format($km, 0, ',', '.') . ' km</td>';
-                                            echo '<td class="text-right">' . number_format($userCost, 2, ',', '.') . ' €</td>';
-                                            echo '<td class="text-right">' . number_format($percent, 1, ',', '.') . ' %</td>';
-                                            echo '</tr>';
-                                        }
-                                    }
-                                    ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    <?php
-                }
-                ?>
-                </div>
-            <?php
+                render_trip_history_ui($tripsByCar, $cars, $users, null, true);
             }
             ?>
         </div>
@@ -412,5 +344,13 @@ foreach ($trips as $trip) {
     <script src="admin.js"></script>
     <script src="script.js"></script>
     <script src="trips.js"></script>
+    <script src="statistics.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof renderAdminUserCostSummary === 'function') {
+            renderAdminUserCostSummary(carsData, carTripsData, userMap);
+        }
+    });
+    </script>
 </body>
 </html>

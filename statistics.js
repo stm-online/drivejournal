@@ -132,6 +132,147 @@
         if (prev2NameEl) prev2NameEl.textContent = prev2Name;
     }
 
+    function getLastThreePastMonths() {
+        const now = new Date();
+        const months = [];
+        for (let i = 3; i >= 1; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const start = new Date(d.getFullYear(), d.getMonth(), 1); start.setHours(0,0,0,0);
+            const end = new Date(d.getFullYear(), d.getMonth() + 1, 0); end.setHours(23,59,59,999);
+            months.push({
+                key: 'prev' + i,
+                label: monthsDE[d.getMonth() + 1],
+                start: start,
+                end: end
+            });
+        }
+        return months;
+    }
+
+    function computeAdminUserCostsForBounds(bounds, carsData, carTripsData, userMap) {
+        const users = Object.keys(userMap || {});
+        const UNASSIGNED = '__unassigned__';
+        const costs = {};
+
+        users.forEach(function(uid) { costs[uid] = 0; });
+        costs[UNASSIGNED] = 0;
+
+        (carTripsData || []).forEach(function(c) {
+            const car = (carsData || []).find(function(x) { return String(x.id) === String(c.carId); });
+            const costPerKm = car && car.cost_per_km ? Number(car.cost_per_km) : 0;
+
+            (c.trips || []).forEach(function(t) {
+                if ((t.type || '') !== 'end') return;
+                const ts = parseTs(t.timestamp);
+                if (!inRange(ts, bounds)) return;
+
+                const dist = (typeof t.distance === 'number')
+                    ? t.distance
+                    : (t.km && t.start_km ? (t.km - t.start_km) : null);
+
+                if (dist === null || isNaN(dist) || !costPerKm) return;
+
+                const uid = (t.user_id === null || typeof t.user_id === 'undefined' || t.user_id === '')
+                    ? UNASSIGNED
+                    : String(t.user_id);
+
+                if (typeof costs[uid] === 'undefined') costs[uid] = 0;
+                costs[uid] += dist * costPerKm;
+            });
+        });
+
+        const numUsers = users.length;
+        if (numUsers > 0) {
+            (carsData || []).forEach(function(car) {
+                if (!car.cost_per_month) return;
+                const monthCost = prorateMonthCost(car, bounds.start, bounds.end);
+                const share = monthCost / numUsers;
+                users.forEach(function(uid) {
+                    costs[uid] += share;
+                });
+            });
+        }
+
+        Object.keys(costs).forEach(function(k) {
+            costs[k] = Math.round(costs[k] * 100) / 100;
+        });
+
+        return costs;
+    }
+
+    function renderAdminUserCostSummary(carsData, carTripsData, userMap) {
+        const body = document.getElementById('user-cost-summary-body');
+        if (!body) return;
+
+        const label1 = document.getElementById('user-cost-month-label-1');
+        const label2 = document.getElementById('user-cost-month-label-2');
+        const label3 = document.getElementById('user-cost-month-label-3');
+        const yearLabel = document.getElementById('user-cost-year-label');
+
+        const months = getLastThreePastMonths();
+        const yearBounds = getPeriodBounds('year');
+
+        if (label1) label1.textContent = months[0].label;
+        if (label2) label2.textContent = months[1].label;
+        if (label3) label3.textContent = months[2].label;
+        if (yearLabel) yearLabel.textContent = String(new Date().getFullYear());
+
+        const monthCosts = months.map(function(m) {
+            return computeAdminUserCostsForBounds({ start: m.start, end: m.end }, carsData, carTripsData, userMap);
+        });
+        const yearCosts = computeAdminUserCostsForBounds(yearBounds, carsData, carTripsData, userMap);
+
+        const users = Object.entries(userMap || {}).sort(function(a, b) {
+            return a[1].localeCompare(b[1], 'de');
+        });
+
+        const rows = users.map(function(entry) {
+            return { key: String(entry[0]), label: entry[1] };
+        });
+        rows.push({ key: '__unassigned__', label: 'Nicht erfasst' });
+
+        body.innerHTML = '';
+
+        const totals = { prev3: 0, prev2: 0, prev1: 0, year: 0 };
+
+        rows.forEach(function(r) {
+            const v1 = monthCosts[0][r.key] || 0;
+            const v2 = monthCosts[1][r.key] || 0;
+            const v3 = monthCosts[2][r.key] || 0;
+            const vy = yearCosts[r.key] || 0;
+
+            totals.prev3 += v1;
+            totals.prev2 += v2;
+            totals.prev1 += v3;
+            totals.year += vy;
+
+            const tr = document.createElement('tr');
+
+            const tdName = document.createElement('td');
+            tdName.textContent = r.label;
+            tr.appendChild(tdName);
+
+            [v1, v2, v3, vy].forEach(function(v) {
+                const td = document.createElement('td');
+                td.className = 'col-right';
+                td.textContent = v.toFixed(2).replace('.', ',') + ' €';
+                tr.appendChild(td);
+            });
+
+            body.appendChild(tr);
+        });
+
+        const totalPrev3 = document.getElementById('user-cost-total-prev3');
+        const totalPrev2 = document.getElementById('user-cost-total-prev2');
+        const totalPrev1 = document.getElementById('user-cost-total-prev1');
+        const totalYear = document.getElementById('user-cost-total-year');
+
+        if (totalPrev3) totalPrev3.textContent = totals.prev3.toFixed(2).replace('.', ',') + ' €';
+        if (totalPrev2) totalPrev2.textContent = totals.prev2.toFixed(2).replace('.', ',') + ' €';
+        if (totalPrev1) totalPrev1.textContent = totals.prev1.toFixed(2).replace('.', ',') + ' €';
+        if (totalYear) totalYear.textContent = totals.year.toFixed(2).replace('.', ',') + ' €';
+    }
+
     window.renderKmCostBox = renderKmCostBox;
     
     // Compute per-car KM and cost for given periods (array of period keys)
@@ -270,4 +411,126 @@
 
     window.computePerCarForPeriods = computePerCarForPeriods;
     window.renderSummaryTables = renderSummaryTables;
+    window.renderAdminUserCostSummary = renderAdminUserCostSummary;
+})();
+
+// Car time-filter tabs — works with render_trip_history_ui() structure
+(function(){
+    const monthNames = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+    function parseTs(s){ return s ? new Date(s.replace(' ', 'T')) : null; }
+
+    function buildTabsForCar(carId, trips) {
+        const container = document.getElementById('car-time-tabs-' + carId);
+        if (!container) return;
+        container.innerHTML = '';
+
+        const years = new Set();
+        (trips || []).forEach(t => {
+            if (!t.timestamp) return;
+            const d = parseTs(t.timestamp);
+            if (d && !isNaN(d)) years.add(d.getFullYear());
+        });
+        const yearList = Array.from(years).sort();
+
+        const now = new Date();
+        const months = [];
+        for (let i = 2; i >= 0; i--) {
+            const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            months.push({ year: m.getFullYear(), month: m.getMonth() });
+        }
+
+        function makeBtn(label, filter) {
+            const btn = document.createElement('button');
+            btn.className = 'car-tab';
+            btn.textContent = label;
+            btn.dataset.filter = JSON.stringify(filter);
+            btn.addEventListener('click', function() {
+                onTimeTabClick(carId, trips, btn);
+            });
+            return btn;
+        }
+
+        const allBtn = makeBtn('Alle', { type: 'all' });
+        allBtn.classList.add('active');
+        container.appendChild(allBtn);
+
+        yearList.forEach(y => container.appendChild(makeBtn(String(y), { type: 'year', year: y })));
+        months.forEach(m => container.appendChild(makeBtn(monthNames[m.month], { type: 'month', year: m.year, month: m.month + 1 })));
+    }
+
+    function onTimeTabClick(carId, trips, btn) {
+        Array.from(btn.parentElement.querySelectorAll('.car-tab')).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderFilteredCarTrips(carId, trips, JSON.parse(btn.dataset.filter));
+    }
+
+    function renderFilteredCarTrips(carId, trips, filter) {
+        const filtered = (trips || []).filter(t => {
+            if (!filter || filter.type === 'all') return true;
+            if (!t.timestamp) return false;
+            const d = parseTs(t.timestamp);
+            if (!d || isNaN(d)) return false;
+            if (filter.type === 'year') return d.getFullYear() === parseInt(filter.year, 10);
+            if (filter.type === 'month') {
+                return d.getFullYear() === parseInt(filter.year, 10) && (d.getMonth() + 1) === parseInt(filter.month, 10);
+            }
+            return true;
+        });
+
+        if (typeof TripsPager !== 'undefined' && typeof renderCarTripRow !== 'undefined') {
+            new TripsPager(filtered, 'car-trips-body-' + carId, 'car-trips-pagination-' + carId, renderCarTripRow);
+        }
+    }
+
+    function initCarTimeTabs() {
+        if (typeof carTripsData === 'undefined') return;
+        carTripsData.forEach(function(item) {
+            buildTabsForCar(item.carId, item.trips || []);
+        });
+    }
+
+    function activateFirstCarWithAll() {
+        if (typeof carTripsData === 'undefined' || !carTripsData.length) return;
+
+        const first = carTripsData[0];
+        const firstCarId = first.carId;
+        const firstTrips = first.trips || [];
+
+        if (typeof window.switchCarTab === 'function') {
+            window.switchCarTab(firstCarId);
+        }
+
+        const timeTabs = document.getElementById('car-time-tabs-' + firstCarId);
+        if (timeTabs) {
+            const buttons = Array.from(timeTabs.querySelectorAll('.car-tab'));
+            buttons.forEach(b => b.classList.remove('active'));
+            if (buttons.length > 0) {
+                buttons[0].classList.add('active');
+            }
+        }
+
+        renderFilteredCarTrips(firstCarId, firstTrips, { type: 'all' });
+    }
+
+    window.buildTabsForCar = buildTabsForCar;
+    window.renderFilteredCarTrips = renderFilteredCarTrips;
+    window.initCarTimeTabs = initCarTimeTabs;
+    window.activateFirstCarWithAll = activateFirstCarWithAll;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initCarTimeTabs();
+
+        const statsBtn = document.querySelector('.tab-button[data-tab="stats"]');
+        if (statsBtn) {
+            statsBtn.addEventListener('click', function() {
+                activateFirstCarWithAll();
+            });
+        }
+
+        const statsPanel = document.getElementById('tab-stats');
+        if (statsPanel && statsPanel.classList.contains('active')) {
+            activateFirstCarWithAll();
+        }
+    });
 })();

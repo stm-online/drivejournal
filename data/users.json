@@ -2,24 +2,26 @@
     {
         "id": 1,
         "name": "Stefan",
-        "token": "8a47faf3d52f5bd0",
-        "email": "st.my@t-online.de"
+        "token": "4121a89ea4ccd786fa3afb45f92a5d4f"
     },
     {
         "id": 2,
         "name": "Ramona",
-        "token": "40d3e1e61e1be3c5"
+        "token": "0d099dafee082e3da91501dbf91cadd2"
+    },
+    {
+        "id": 3,
+        "name": "Lara",
+        "token": "4087d9da63112bd4b12c9cbf37db9b42"
+    },
+    {
+        "id": 4,
+        "name": "Felix",
+        "token": "97c04887e5ac97e6ae36682f58d187a1"
     },
     {
         "id": 5,
-        "name": "Heinz",
-        "token": "ea768613199d590c",
-        "email": "heinz@mail.de"
-    },
-    {
-        "id": 6,
-        "name": "Testuser 2",
-        "token": "8862b1ab88ed01c9",
-        "email": ""
+        "name": "Tim",
+        "token": "e538d784766dc3b5ce150680bb7379c7"
     }
 ]

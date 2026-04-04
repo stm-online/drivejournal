@@ -310,6 +310,176 @@ if ($action === 'save_trip') {
     exit;
 }
 
+// Vorhandene Fahrt korrigieren/ueberschreiben (nur Admin)
+if ($action === 'update_trip') {
+    if (!checkAdmin()) {
+        echo json_encode(['success' => false, 'message' => 'Nur Admin darf Einträge bearbeiten.']);
+        exit;
+    }
+
+    $tripId = isset($_POST['trip_id']) ? (int)$_POST['trip_id'] : 0;
+    $carId = isset($_POST['car_id']) ? (int)$_POST['car_id'] : 0;
+    $newKm = isset($_POST['km']) ? (float)$_POST['km'] : 0;
+    $newStartKm = isset($_POST['start_km']) ? (float)$_POST['start_km'] : 0;
+    $newUserId = isset($_POST['user_id']) ? (int)$_POST['user_id'] : null;
+
+    if ($tripId <= 0 || $carId <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Ungültige Trip- oder Auto-ID.']);
+        exit;
+    }
+    if ($newStartKm <= 0 || $newKm <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Start- und Ende-KM müssen größer als 0 sein.']);
+        exit;
+    }
+    if ($newStartKm >= $newKm) {
+        echo json_encode(['success' => false, 'message' => 'Start KM muss kleiner als Ende KM sein.']);
+        exit;
+    }
+
+    $tripsFile = getTripsFileForCar($carId);
+    if (!file_exists($tripsFile)) {
+        echo json_encode(['success' => false, 'message' => 'Trip-Datei nicht gefunden.']);
+        exit;
+    }
+
+    $fp = fopen($tripsFile, 'c+');
+    if (!$fp) {
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Zugriff auf die Trip-Datei.']);
+        exit;
+    }
+    if (!flock($fp, LOCK_EX)) {
+        fclose($fp);
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Sperren der Trip-Datei.']);
+        exit;
+    }
+
+    rewind($fp);
+    $contents = stream_get_contents($fp);
+    $trips = json_decode($contents, true) ?: [];
+
+    $targetIndex = null;
+    foreach ($trips as $idx => $trip) {
+        if ((int)($trip['id'] ?? 0) === $tripId) {
+            $targetIndex = $idx;
+            break;
+        }
+    }
+
+    if ($targetIndex === null) {
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        echo json_encode(['success' => false, 'message' => 'Fahrt nicht gefunden.']);
+        exit;
+    }
+
+    $targetTrip = $trips[$targetIndex];
+    if (($targetTrip['type'] ?? '') !== 'end') {
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        echo json_encode(['success' => false, 'message' => 'Nur Ende-Fahrten können bearbeitet werden.']);
+        exit;
+    }
+    if (!empty($targetTrip['is_initial'])) {
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        echo json_encode(['success' => false, 'message' => 'Initialstand kann nicht bearbeitet werden.']);
+        exit;
+    }
+
+    // Nachbargrenzen analog zur Tabellen-Logik bestimmen.
+    $sortedEndTrips = array_values(array_filter($trips, function($trip) {
+        return (($trip['type'] ?? '') === 'end') && isset($trip['km']) && is_numeric($trip['km']);
+    }));
+    usort($sortedEndTrips, function($a, $b) {
+        $aKm = (float)$a['km'];
+        $bKm = (float)$b['km'];
+        if ($aKm === $bKm) {
+            return ((int)($a['id'] ?? 0)) - ((int)($b['id'] ?? 0));
+        }
+        return $aKm < $bKm ? -1 : 1;
+    });
+
+    $pos = null;
+    foreach ($sortedEndTrips as $i => $trip) {
+        if ((int)($trip['id'] ?? 0) === $tripId) {
+            $pos = $i;
+            break;
+        }
+    }
+
+    $lowerBound = null;
+    $upperBound = null;
+    if ($pos !== null) {
+        if ($pos > 0) {
+            $lowerBound = (float)$sortedEndTrips[$pos - 1]['km'];
+        }
+        if ($pos < count($sortedEndTrips) - 1) {
+            $upperBound = (float)$sortedEndTrips[$pos + 1]['km'];
+        }
+    }
+
+    if ($lowerBound !== null) {
+        if ($newStartKm < $lowerBound || $newKm < $lowerBound) {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            echo json_encode(['success' => false, 'message' => 'Start/Ende KM dürfen nicht kleiner als der Folgeeintrag sein (' . number_format($lowerBound, 0, ',', '.') . ').']);
+            exit;
+        }
+    }
+    if ($upperBound !== null) {
+        if ($newStartKm > $upperBound || $newKm > $upperBound) {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            echo json_encode(['success' => false, 'message' => 'Start/Ende KM dürfen nicht größer als der vorherige Eintrag sein (' . number_format($upperBound, 0, ',', '.') . ').']);
+            exit;
+        }
+    }
+
+    $trips[$targetIndex]['km'] = $newKm;
+    $trips[$targetIndex]['start_km'] = $newStartKm;
+    $trips[$targetIndex]['start_source'] = 'correction';
+    if ($newUserId !== null && $newUserId > 0) {
+        $trips[$targetIndex]['user_id'] = $newUserId;
+    }
+
+    usort($trips, function($a, $b) {
+        return ((int)($a['id'] ?? 0)) - ((int)($b['id'] ?? 0));
+    });
+
+    ftruncate($fp, 0);
+    rewind($fp);
+    fwrite($fp, json_encode($trips, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    fflush($fp);
+    flock($fp, LOCK_UN);
+    fclose($fp);
+
+    // Nach Korrektur den aktuellen KM-Stand des Autos neu berechnen.
+    $cars = loadJSON(CARS_FILE);
+    foreach ($cars as $i => $car) {
+        if ((int)($car['id'] ?? 0) === $carId) {
+            $initialKm = isset($car['initial_km']) ? (float)$car['initial_km'] : (isset($car['current_km']) ? (float)$car['current_km'] : 0);
+            $maxEndKm = null;
+            foreach ($trips as $t) {
+                if ((($t['type'] ?? '') === 'end') && isset($t['km']) && is_numeric($t['km'])) {
+                    $tkm = (float)$t['km'];
+                    if ($maxEndKm === null || $tkm > $maxEndKm) {
+                        $maxEndKm = $tkm;
+                    }
+                }
+            }
+            $cars[$i]['current_km'] = $maxEndKm !== null ? max($initialKm, $maxEndKm) : $initialKm;
+            break;
+        }
+    }
+    saveJSON(CARS_FILE, $cars);
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Fahrt erfolgreich aktualisiert.'
+    ]);
+    exit;
+}
+
 // Auto hinzufügen
 if ($action === 'add_car') {
     $name = $_POST['name'] ?? '';

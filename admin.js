@@ -4,10 +4,11 @@
 document.querySelectorAll('.tab-button').forEach(button => {
     button.addEventListener('click', function() {
         const tabName = this.dataset.tab;
+        const topLevelPanels = document.querySelectorAll('.tab-panel[id^="tab-"]');
         
         // Entferne aktive Klasse von allen Tabs
         document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-panel').forEach(content => content.classList.remove('active'));
+        topLevelPanels.forEach(content => content.classList.remove('active'));
         
         // Aktiviere gewählten Tab
         this.classList.add('active');

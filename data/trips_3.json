@@ -1,23 +1,52 @@
 [
     {
-        "id": 1,
-        "user_id": 1,
+        "id": 3,
+        "user_id": null,
         "car_id": 3,
-        "km": 22100,
+        "km": 58706,
         "type": "end",
-        "timestamp": "2026-03-02 13:26:30",
-        "start_km": 22000,
-        "start_source": "fallback-current"
+        "timestamp": "2026-02-11 17:44:11",
+        "start_source": "initial",
+        "is_initial": true
     },
     {
-        "id": 2,
-        "user_id": 1,
+        "id": 4,
+        "user_id": 3,
         "car_id": 3,
-        "km": 22122,
+        "km": 59320,
         "type": "end",
-        "timestamp": "2026-03-03 16:23:22",
-        "start_km": 22100,
-        "start_source": "history-guess",
-        "linked_trip_id": 1
+        "timestamp": "2026-03-07 13:35:34",
+        "start_km": 59312,
+        "start_source": "correction"
+    },
+    {
+        "id": 5,
+        "user_id": 3,
+        "car_id": 3,
+        "km": 59513,
+        "type": "end",
+        "timestamp": "2026-03-18 17:50:32",
+        "start_km": 59507,
+        "start_source": "correction"
+    },
+    {
+        "id": 6,
+        "user_id": 3,
+        "car_id": 3,
+        "km": 59585,
+        "type": "end",
+        "timestamp": "2026-03-24 19:55:25",
+        "start_km": 59577,
+        "start_source": "correction"
+    },
+    {
+        "id": 7,
+        "user_id": 3,
+        "car_id": 3,
+        "km": 59654,
+        "type": "end",
+        "timestamp": "2026-03-27 17:54:50",
+        "start_km": 59636,
+        "start_source": "correction"
     }
 ]

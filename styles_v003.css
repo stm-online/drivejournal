@@ -378,6 +378,19 @@ p   { margin-top: var(--spacing-xs); }
 .table-inline td:nth-child(3), .table-inline th:nth-child(3) { width: 20%; }
 .table-inline td:nth-child(4), .table-inline th:nth-child(4) { width: 20%; }
 
+/* Admin: Kosten je Nutzer braucht 5 gleich breite Spalten */
+#user-cost-summary-admin .table-inline { table-layout: fixed; }
+#user-cost-summary-admin .table-inline td:nth-child(1),
+#user-cost-summary-admin .table-inline th:nth-child(1),
+#user-cost-summary-admin .table-inline td:nth-child(2),
+#user-cost-summary-admin .table-inline th:nth-child(2),
+#user-cost-summary-admin .table-inline td:nth-child(3),
+#user-cost-summary-admin .table-inline th:nth-child(3),
+#user-cost-summary-admin .table-inline td:nth-child(4),
+#user-cost-summary-admin .table-inline th:nth-child(4),
+#user-cost-summary-admin .table-inline td:nth-child(5),
+#user-cost-summary-admin .table-inline th:nth-child(5) { width: 20%; }
+
 .trip-date { white-space: nowrap; }
 .trip-date strong { display: inline; font-size: 0.9rem; font-weight: 700; margin-right: var(--spacing-xs); }
 .trip-date span   { display: inline; font-size: 0.75rem; color: var(--text-light); }
@@ -640,6 +653,12 @@ p   { margin-top: var(--spacing-xs); }
     margin-bottom: var(--spacing-sm);
 }
 
+/* Stack content vertically for items that need full-width content (tabs above table) */
+.admin-item--stack {
+    flex-direction: column;
+    align-items: stretch;
+}
+
 .admin-item img {
     width: 120px;
     height: 120px;
@@ -743,7 +762,7 @@ p   { margin-top: var(--spacing-xs); }
 .remaining-range-picker        { display: none; margin-top: 12px; flex-direction: column; gap: 8px; align-items: stretch; }
 .remaining-range-picker.active { display: flex; }
 .range-btns { display: flex; gap: 8px; }
-.range-btn { flex: 1 1 0; min-width: 0; padding: 10px; width: auto !important; border-radius: var(--radius-sm); font-weight: 700; }
+.range-btn { flex: 1 1 0; min-width: 0; padding: 10px; width: auto !important; border-radius: var(--radius-md); font-weight: 700; }
 .btn--notselected { background: var(--bg-color); color: var(--text-light); border: 1px solid var(--border-color); border-radius: var(--radius-md); }
 .range-btn.btn--secondary { color: var(--color-secondary); background: var(--background-secondary); }
 
