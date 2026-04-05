@@ -332,6 +332,10 @@ foreach ($trips as $trip) {
                 echo '<p class="empty">Keine Autos vorhanden.</p>';
             } else {
                 render_trip_history_ui($tripsByCar, $cars, $users, null, true);
+                echo '<div class="trips-history" id="export-trips-admin">';
+                echo '  <h3>Export</h3>';
+                echo '  <button type="button" class="btn btn--primary btn--normal" id="btn-csv-export" onclick="exportAllTripsCsv()">CSV exportieren</button>';
+                echo '</div>';
             }
             ?>
         </div>
@@ -339,7 +343,7 @@ foreach ($trips as $trip) {
 
     <?php 
         $tripsByCar = buildTripsByCar($cars, $trips);
-        render_app_data_script($users, $cars, null, true, [], $tripsByCar); 
+        render_app_data_script($users, $cars, null, true, [], $tripsByCar, $trips); 
     ?>
     <script src="admin.js"></script>
     <script src="script.js"></script>

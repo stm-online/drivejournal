@@ -555,7 +555,7 @@
         "timestamp": "2026-03-30 07:06:14",
         "gap_filled": true,
         "start_source": "correction",
-        "start_km": 32011
+        "start_km": 32030
     },
     {
         "id": 55,
@@ -578,5 +578,16 @@
         "gap_filled": true,
         "start_source": "correction",
         "start_km": 31529
+    },
+    {
+        "id": 57,
+        "user_id": 5,
+        "car_id": 1,
+        "km": 32100,
+        "type": "end",
+        "timestamp": "2026-04-05 08:07:06",
+        "start_km": 32062,
+        "start_source": "correction",
+        "linked_trip_id": 56
     }
 ]

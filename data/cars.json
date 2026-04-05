@@ -3,7 +3,7 @@
         "id": 1,
         "name": "Mokka-e",
         "initial_km": 29480,
-        "current_km": 32052,
+        "current_km": 32100,
         "image": "uploads\/car_1_1770828117.png",
         "cost_per_km": 0.05,
         "remaining_range": true

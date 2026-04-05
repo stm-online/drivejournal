@@ -397,8 +397,9 @@ function render_confirmation_dialog() {
  * @param bool $isAdmin
  * @param array $userTrips
  * @param array $tripsByCar
+ * @param array $allTrips
  */
-function render_app_data_script($users, $cars, $currentUserId = null, $isAdmin = false, $userTrips = [], $tripsByCar = []) {
+function render_app_data_script($users, $cars, $currentUserId = null, $isAdmin = false, $userTrips = [], $tripsByCar = [], $allTrips = []) {
     // JS data
     $userMap = [];
     foreach ($users as $u) $userMap[$u['id']] = $u['name'];
@@ -440,6 +441,7 @@ function render_app_data_script($users, $cars, $currentUserId = null, $isAdmin =
     echo "const carsData = " . json_encode($cars_for_js, JSON_UNESCAPED_UNICODE) . ";\n";
     echo "const userTripsData = " . json_encode($userTrips, JSON_UNESCAPED_UNICODE) . ";\n";
     echo "const carTripsData = " . json_encode($carTripsJs, JSON_UNESCAPED_UNICODE) . ";\n";
+    echo "const allTripsData = " . json_encode($allTrips, JSON_UNESCAPED_UNICODE) . ";\n";
     echo "const userMap = " . json_encode($userMap, JSON_UNESCAPED_UNICODE) . ";\n";
     echo "const carMap = " . json_encode($carMap, JSON_UNESCAPED_UNICODE) . ";\n";
     echo "</script>\n";

@@ -181,13 +181,91 @@
             });
         });
 
-        const numUsers = users.length;
-        if (numUsers > 0) {
+        // Compute gaps between consecutive 'end' trips per car and assign gap distances
+        // to UNASSIGNED if the gap's midpoint falls into the bounds.
+        (carTripsData || []).forEach(function(c) {
+            const car = (carsData || []).find(function(x) { return String(x.id) === String(c.carId); });
+            const costPerKm = car && car.cost_per_km ? Number(car.cost_per_km) : 0;
+            if (!c.trips || !c.trips.length) return;
+
+            // collect end trips with numeric km
+            const endTrips = (c.trips || []).filter(function(t){ return (t.type||'') === 'end' && t.km !== undefined && t.km !== null && !isNaN(Number(t.km)); })
+                .map(function(t){ return Object.assign({}, t, { kmN: Number(t.km), ts: parseTs(t.timestamp) }); });
+
+            // sort by km ascending to find previous/next
+            endTrips.sort(function(a,b){ return a.kmN - b.kmN; });
+
+            for (let i = 1; i < endTrips.length; i++) {
+                const prev = endTrips[i-1];
+                const cur = endTrips[i];
+                let gapDistance = 0;
+
+                if (cur.start_km !== undefined && cur.start_km !== null && !isNaN(Number(cur.start_km))) {
+                    const actualStartKm = Number(cur.start_km);
+                    const expectedStartKm = prev.kmN;
+                    if (actualStartKm !== expectedStartKm) {
+                        gapDistance = actualStartKm - expectedStartKm;
+                    }
+                } else {
+                    const kmDiff = cur.kmN - prev.kmN;
+                    const recordedDistance = (typeof cur.distance === 'number') ? cur.distance : ( (cur.start_km !== undefined && cur.km !== undefined) ? (Number(cur.km) - Number(cur.start_km)) : null );
+                    const rec = (recordedDistance === null || isNaN(Number(recordedDistance))) ? 0 : Number(recordedDistance);
+                    if (kmDiff > rec + 1) {
+                        gapDistance = kmDiff - rec;
+                    }
+                }
+
+                if (gapDistance > 0) {
+                    // compute midpoint timestamp between prev and cur
+                    const t1 = prev.ts instanceof Date && !isNaN(prev.ts) ? prev.ts : null;
+                    const t2 = cur.ts instanceof Date && !isNaN(cur.ts) ? cur.ts : null;
+                    let mid = null;
+                    if (t1 && t2) {
+                        mid = new Date(Math.floor((t1.getTime() + t2.getTime()) / 2));
+                    } else if (t1) {
+                        mid = t1;
+                    } else if (t2) {
+                        mid = t2;
+                    }
+
+                    if (mid && inRange(mid, bounds)) {
+                        if (costPerKm) {
+                            costs[UNASSIGNED] = (costs[UNASSIGNED] || 0) + gapDistance * costPerKm;
+                        }
+                    }
+                }
+            }
+        });
+
+        // Distribute monthly fixed costs among participants in the period.
+        // Participants = users who have trips in the bounds + 'unassigned' if there are trips without user.
+        const participantsSet = new Set();
+        (carTripsData || []).forEach(function(c) {
+            (c.trips || []).forEach(function(t) {
+                if ((t.type || '') !== 'end') return;
+                const ts = parseTs(t.timestamp);
+                if (!inRange(ts, bounds)) return;
+                const uid = (t.user_id === null || typeof t.user_id === 'undefined' || t.user_id === '')
+                    ? UNASSIGNED
+                    : String(t.user_id);
+                participantsSet.add(uid);
+            });
+        });
+
+        // Fallback: if no participants found in period, use all known users
+        if (participantsSet.size === 0) {
+            (users || []).forEach(function(uid) { participantsSet.add(uid); });
+        }
+
+        const participants = Array.from(participantsSet);
+        const numParticipants = participants.length;
+        if (numParticipants > 0) {
             (carsData || []).forEach(function(car) {
                 if (!car.cost_per_month) return;
                 const monthCost = prorateMonthCost(car, bounds.start, bounds.end);
-                const share = monthCost / numUsers;
-                users.forEach(function(uid) {
+                const share = monthCost / numParticipants;
+                participants.forEach(function(uid) {
+                    if (typeof costs[uid] === 'undefined') costs[uid] = 0;
                     costs[uid] += share;
                 });
             });
@@ -271,6 +349,155 @@
         if (totalPrev2) totalPrev2.textContent = totals.prev2.toFixed(2).replace('.', ',') + ' €';
         if (totalPrev1) totalPrev1.textContent = totals.prev1.toFixed(2).replace('.', ',') + ' €';
         if (totalYear) totalYear.textContent = totals.year.toFixed(2).replace('.', ',') + ' €';
+    }
+
+    function toNumericOrNull(v) {
+        if (v === null || typeof v === 'undefined' || v === '') return null;
+        const n = Number(v);
+        return isNaN(n) ? null : n;
+    }
+
+    function formatMidTimestamp(tsA, tsB) {
+        const a = parseTs(tsA);
+        const b = parseTs(tsB);
+        let dt = null;
+        if (a && !isNaN(a) && b && !isNaN(b)) {
+            dt = new Date(Math.floor((a.getTime() + b.getTime()) / 2));
+        } else if (a && !isNaN(a)) {
+            dt = a;
+        } else if (b && !isNaN(b)) {
+            dt = b;
+        }
+        if (!dt) return '';
+        const y = dt.getFullYear();
+        const m = String(dt.getMonth() + 1).padStart(2, '0');
+        const d = String(dt.getDate()).padStart(2, '0');
+        const hh = String(dt.getHours()).padStart(2, '0');
+        const mm = String(dt.getMinutes()).padStart(2, '0');
+        const ss = String(dt.getSeconds()).padStart(2, '0');
+        return y + '-' + m + '-' + d + ' ' + hh + ':' + mm + ':' + ss;
+    }
+
+    function escapeCsvCell(v) {
+        const s = String(v === null || typeof v === 'undefined' ? '' : v);
+        if (s.indexOf('"') >= 0 || s.indexOf(',') >= 0 || s.indexOf('\n') >= 0 || s.indexOf('\r') >= 0) {
+            return '"' + s.replace(/"/g, '""') + '"';
+        }
+        return s;
+    }
+
+    function exportAllTripsCsv() {
+        const trips = (typeof allTripsData !== 'undefined' && Array.isArray(allTripsData)) ? allTripsData : [];
+        const cars = (typeof carsData !== 'undefined' && Array.isArray(carsData)) ? carsData : [];
+        const users = (typeof userMap !== 'undefined' && userMap) ? userMap : {};
+
+        const tripsByCar = {};
+        trips.forEach(function(t) {
+            if ((t.type || '') !== 'end') return;
+            const cid = String(t.car_id);
+            if (!tripsByCar[cid]) tripsByCar[cid] = [];
+            tripsByCar[cid].push(t);
+        });
+
+        const sortedCars = cars.slice().sort(function(a, b) {
+            return Number(a.id) - Number(b.id);
+        });
+
+        const rows = [];
+        sortedCars.forEach(function(car) {
+            const cid = String(car.id);
+            const carTrips = (tripsByCar[cid] || []).slice();
+
+            carTrips.sort(function(a, b) {
+                const aStartRaw = toNumericOrNull(a.start_km);
+                const bStartRaw = toNumericOrNull(b.start_km);
+                const aStart = aStartRaw !== null ? aStartRaw : toNumericOrNull(a.km);
+                const bStart = bStartRaw !== null ? bStartRaw : toNumericOrNull(b.km);
+                if (aStart !== null && bStart !== null && aStart !== bStart) return aStart - bStart;
+                if (aStart === null && bStart !== null) return 1;
+                if (aStart !== null && bStart === null) return -1;
+                const aEnd = toNumericOrNull(a.km);
+                const bEnd = toNumericOrNull(b.km);
+                if (aEnd !== null && bEnd !== null && aEnd !== bEnd) return aEnd - bEnd;
+                return Number(a.id || 0) - Number(b.id || 0);
+            });
+
+            let prev = null;
+            carTrips.forEach(function(t) {
+                const startKmRaw = toNumericOrNull(t.start_km);
+                const endKm = toNumericOrNull(t.km);
+                const startKm = startKmRaw !== null ? startKmRaw : endKm;
+                const userName = (t.user_id !== null && typeof t.user_id !== 'undefined' && users[String(t.user_id)])
+                    ? users[String(t.user_id)]
+                    : 'nicht erfasst';
+
+                if (prev) {
+                    const prevEnd = toNumericOrNull(prev.km);
+                    const nextStart = startKm;
+                    if (prevEnd !== null && nextStart !== null && prevEnd !== nextStart) {
+                        rows.push({
+                            id: 'gap_' + String(prev.id || '') + '_' + String(t.id || ''),
+                            autoId: cid,
+                            benutzer: 'nicht erfasst',
+                            startKm: prevEnd,
+                            endKm: nextStart,
+                            timestamp: formatMidTimestamp(prev.timestamp, t.timestamp)
+                        });
+                    }
+                }
+
+                rows.push({
+                    id: String(t.id || ''),
+                    autoId: cid,
+                    benutzer: userName,
+                    startKm: startKm !== null ? startKm : '',
+                    endKm: endKm !== null ? endKm : '',
+                    timestamp: t.timestamp || ''
+                });
+
+                prev = t;
+            });
+        });
+
+        rows.sort(function(a, b) {
+            const aCar = Number(a.autoId || 0);
+            const bCar = Number(b.autoId || 0);
+            if (aCar !== bCar) return aCar - bCar;
+            const aStart = toNumericOrNull(a.startKm);
+            const bStart = toNumericOrNull(b.startKm);
+            if (aStart === null && bStart === null) return 0;
+            if (aStart === null) return 1;
+            if (bStart === null) return -1;
+            return aStart - bStart;
+        });
+
+        const header = ['ID', 'Auto', 'Benutzer', 'start_KM', 'end_km', 'timestamp'];
+        const csvLines = [header.map(escapeCsvCell).join(',')];
+        rows.forEach(function(r) {
+            csvLines.push([
+                r.id,
+                r.autoId,
+                r.benutzer,
+                r.startKm,
+                r.endKm,
+                r.timestamp
+            ].map(escapeCsvCell).join(','));
+        });
+
+        const bom = '\uFEFF';
+        const csv = bom + csvLines.join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'trips_export_' + y + m + d + '.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
     }
 
     window.renderKmCostBox = renderKmCostBox;
@@ -412,6 +639,7 @@
     window.computePerCarForPeriods = computePerCarForPeriods;
     window.renderSummaryTables = renderSummaryTables;
     window.renderAdminUserCostSummary = renderAdminUserCostSummary;
+    window.exportAllTripsCsv = exportAllTripsCsv;
 })();
 
 // Car time-filter tabs — works with render_trip_history_ui() structure
