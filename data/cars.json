@@ -3,7 +3,7 @@
         "id": 1,
         "name": "Mokka-e",
         "initial_km": 29480,
-        "current_km": 32100,
+        "current_km": 38312,
         "image": "uploads\/car_1_1770828117.png",
         "cost_per_km": 0.05,
         "remaining_range": true
@@ -12,7 +12,7 @@
         "id": 2,
         "name": "Tiguan",
         "initial_km": 163989,
-        "current_km": 164926,
+        "current_km": 173245,
         "image": "uploads\/car_2_1770828197.png",
         "cost_per_km": 0.05
     },
@@ -20,7 +20,7 @@
         "id": 3,
         "name": "Countryman",
         "initial_km": 58706,
-        "current_km": 59654,
+        "current_km": 62177,
         "image": "uploads\/car_3_1770828251.png",
         "cost_per_km": 0.05
     }

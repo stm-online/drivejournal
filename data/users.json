@@ -2,26 +2,32 @@
     {
         "id": 1,
         "name": "Stefan",
-        "token": "4121a89ea4ccd786fa3afb45f92a5d4f"
+        "token": "kTxc6Iqx6lZSM6es"
     },
     {
         "id": 2,
         "name": "Ramona",
-        "token": "0d099dafee082e3da91501dbf91cadd2"
+        "token": "E5ZfRg9pEikPY9vA"
     },
     {
         "id": 3,
         "name": "Lara",
-        "token": "4087d9da63112bd4b12c9cbf37db9b42"
+        "token": "p8ai06Rbh8ae7Lzq"
     },
     {
         "id": 4,
         "name": "Felix",
-        "token": "97c04887e5ac97e6ae36682f58d187a1"
+        "token": "wyEuTru7JX3tFufj"
     },
     {
         "id": 5,
         "name": "Tim",
-        "token": "e538d784766dc3b5ce150680bb7379c7"
+        "token": "Rryf1EeZScwWUHZa"
+    },
+    {
+        "id": 6,
+        "name": "Service",
+        "token": "2SoliJ7668VDTjwD",
+        "email": ""
     }
 ]
