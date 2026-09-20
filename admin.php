@@ -303,6 +303,10 @@ foreach ($trips as $trip) {
         <div class="tab-panel" id="tab-stats">
             <div class="trips-history" id="user-cost-summary-admin">
                 <h3>💶 Kosten je Nutzer</h3>
+                <div class="car-tabs" id="user-cost-year-tabs"></div>
+                <div class="car-tab-contents">
+                    <div class="tab-panel active" id="user-cost-quarter-panel">
+                        <div class="car-tabs" id="user-cost-quarter-tabs"></div>
                 <table class="table-inline">
                     <thead>
                         <tr>
@@ -324,6 +328,8 @@ foreach ($trips as $trip) {
                         </tr>
                     </tfoot>
                 </table>
+                    </div>
+                </div>
             </div>
 
             <?php

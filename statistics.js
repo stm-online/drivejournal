@@ -282,73 +282,180 @@
         const body = document.getElementById('user-cost-summary-body');
         if (!body) return;
 
+        const yearTabs = document.getElementById('user-cost-year-tabs');
+        const quarterTabs = document.getElementById('user-cost-quarter-tabs');
         const label1 = document.getElementById('user-cost-month-label-1');
         const label2 = document.getElementById('user-cost-month-label-2');
         const label3 = document.getElementById('user-cost-month-label-3');
         const yearLabel = document.getElementById('user-cost-year-label');
+        const totalPrev3 = document.getElementById('user-cost-total-prev3');
+        const totalPrev2 = document.getElementById('user-cost-total-prev2');
+        const totalPrev1 = document.getElementById('user-cost-total-prev1');
+        const totalYear = document.getElementById('user-cost-total-year');
+        if (!yearTabs || !quarterTabs) return;
 
-        const months = getLastThreePastMonths();
-        const yearBounds = getPeriodBounds('year');
+        function quarterFromMonth(month) {
+            return Math.floor(month / 3) + 1;
+        }
 
-        if (label1) label1.textContent = months[0].label;
-        if (label2) label2.textContent = months[1].label;
-        if (label3) label3.textContent = months[2].label;
-        if (yearLabel) yearLabel.textContent = String(new Date().getFullYear());
+        function getQuarterBounds(year, quarter) {
+            const startMonth = (quarter - 1) * 3;
+            const start = new Date(year, startMonth, 1);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(year, startMonth + 3, 0);
+            end.setHours(23, 59, 59, 999);
+            return { start: start, end: end };
+        }
 
-        const monthCosts = months.map(function(m) {
-            return computeAdminUserCostsForBounds({ start: m.start, end: m.end }, carsData, carTripsData, userMap);
+        const quarterMap = {};
+        (carTripsData || []).forEach(function(c) {
+            (c.trips || []).forEach(function(t) {
+                if ((t.type || '') !== 'end') return;
+                const d = parseTs(t.timestamp);
+                if (!d || isNaN(d)) return;
+                const y = d.getFullYear();
+                const q = quarterFromMonth(d.getMonth());
+                if (!quarterMap[y]) quarterMap[y] = new Set();
+                quarterMap[y].add(q);
+            });
         });
-        const yearCosts = computeAdminUserCostsForBounds(yearBounds, carsData, carTripsData, userMap);
+
+        const yearsWithData = Object.keys(quarterMap)
+            .map(function(y) { return parseInt(y, 10); })
+            .sort(function(a, b) { return a - b; });
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const years = yearsWithData.length ? yearsWithData : [currentYear];
 
         const users = Object.entries(userMap || {}).sort(function(a, b) {
             return a[1].localeCompare(b[1], 'de');
         });
-
         const rows = users.map(function(entry) {
             return { key: String(entry[0]), label: entry[1] };
         });
         rows.push({ key: '__unassigned__', label: 'Nicht erfasst' });
 
-        body.innerHTML = '';
+        const latestYear = years[years.length - 1];
+        let selectedYear = latestYear;
+        const currentQuarter = quarterFromMonth(now.getMonth());
+        const latestYearQuarters = Array.from(quarterMap[latestYear] || []);
+        let selectedQuarter = latestYearQuarters.length
+            ? Math.max.apply(null, latestYearQuarters)
+            : currentQuarter;
 
-        const totals = { prev3: 0, prev2: 0, prev1: 0, year: 0 };
+        function getQuarterMonths(year, quarter) {
+            const startMonth = (quarter - 1) * 3;
+            return [
+                new Date(year, startMonth, 1),
+                new Date(year, startMonth + 1, 1),
+                new Date(year, startMonth + 2, 1)
+            ];
+        }
 
-        rows.forEach(function(r) {
-            const v1 = monthCosts[0][r.key] || 0;
-            const v2 = monthCosts[1][r.key] || 0;
-            const v3 = monthCosts[2][r.key] || 0;
-            const vy = yearCosts[r.key] || 0;
+        function getMonthBounds(year, monthIndex) {
+            const start = new Date(year, monthIndex, 1);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(year, monthIndex + 1, 0);
+            end.setHours(23, 59, 59, 999);
+            return { start: start, end: end };
+        }
 
-            totals.prev3 += v1;
-            totals.prev2 += v2;
-            totals.prev1 += v3;
-            totals.year += vy;
+        function renderTable() {
+            const quarterMonths = getQuarterMonths(selectedYear, selectedQuarter);
+            const monthBounds = quarterMonths.map(function(d) {
+                return getMonthBounds(d.getFullYear(), d.getMonth());
+            });
+            const monthCosts = monthBounds.map(function(bounds) {
+                return computeAdminUserCostsForBounds(bounds, carsData, carTripsData, userMap);
+            });
+            const yearCosts = computeAdminUserCostsForBounds({
+                start: new Date(selectedYear, 0, 1, 0, 0, 0, 0),
+                end: new Date(selectedYear, 11, 31, 23, 59, 59, 999)
+            }, carsData, carTripsData, userMap);
 
-            const tr = document.createElement('tr');
+            if (label1) label1.textContent = monthsDE[quarterMonths[0].getMonth() + 1];
+            if (label2) label2.textContent = monthsDE[quarterMonths[1].getMonth() + 1];
+            if (label3) label3.textContent = monthsDE[quarterMonths[2].getMonth() + 1];
+            if (yearLabel) yearLabel.textContent = String(selectedYear);
+            body.innerHTML = '';
+            const totals = { prev3: 0, prev2: 0, prev1: 0, year: 0 };
 
-            const tdName = document.createElement('td');
-            tdName.textContent = r.label;
-            tr.appendChild(tdName);
+            rows.forEach(function(r) {
+                const v1 = monthCosts[0][r.key] || 0;
+                const v2 = monthCosts[1][r.key] || 0;
+                const v3 = monthCosts[2][r.key] || 0;
+                const vy = yearCosts[r.key] || 0;
 
-            [v1, v2, v3, vy].forEach(function(v) {
-                const td = document.createElement('td');
-                td.className = 'col-right';
-                td.textContent = v.toFixed(2).replace('.', ',') + ' €';
-                tr.appendChild(td);
+                totals.prev3 += v1;
+                totals.prev2 += v2;
+                totals.prev1 += v3;
+                totals.year += vy;
+
+                const tr = document.createElement('tr');
+                const tdName = document.createElement('td');
+                tdName.textContent = r.label;
+                tr.appendChild(tdName);
+
+                [v1, v2, v3, vy].forEach(function(v) {
+                    const td = document.createElement('td');
+                    td.className = 'col-right';
+                    td.textContent = v.toFixed(2).replace('.', ',') + ' €';
+                    tr.appendChild(td);
+                });
+
+                body.appendChild(tr);
             });
 
-            body.appendChild(tr);
-        });
+            if (totalPrev3) totalPrev3.textContent = totals.prev3.toFixed(2).replace('.', ',') + ' €';
+            if (totalPrev2) totalPrev2.textContent = totals.prev2.toFixed(2).replace('.', ',') + ' €';
+            if (totalPrev1) totalPrev1.textContent = totals.prev1.toFixed(2).replace('.', ',') + ' €';
+            if (totalYear) totalYear.textContent = totals.year.toFixed(2).replace('.', ',') + ' €';
+        }
 
-        const totalPrev3 = document.getElementById('user-cost-total-prev3');
-        const totalPrev2 = document.getElementById('user-cost-total-prev2');
-        const totalPrev1 = document.getElementById('user-cost-total-prev1');
-        const totalYear = document.getElementById('user-cost-total-year');
+        function renderQuarterTabs() {
+            quarterTabs.innerHTML = '';
+            const quarters = [1, 2, 3, 4];
+            if (quarters.indexOf(selectedQuarter) === -1) {
+                selectedQuarter = currentQuarter;
+            }
 
-        if (totalPrev3) totalPrev3.textContent = totals.prev3.toFixed(2).replace('.', ',') + ' €';
-        if (totalPrev2) totalPrev2.textContent = totals.prev2.toFixed(2).replace('.', ',') + ' €';
-        if (totalPrev1) totalPrev1.textContent = totals.prev1.toFixed(2).replace('.', ',') + ' €';
-        if (totalYear) totalYear.textContent = totals.year.toFixed(2).replace('.', ',') + ' €';
+            quarters.forEach(function(q) {
+                const btn = document.createElement('button');
+                btn.className = 'car-tab' + (q === selectedQuarter ? ' active' : '');
+                btn.textContent = 'Q' + q;
+                btn.addEventListener('click', function() {
+                    selectedQuarter = q;
+                    renderQuarterTabs();
+                    renderTable();
+                });
+                quarterTabs.appendChild(btn);
+            });
+        }
+
+        function renderYearTabs() {
+            yearTabs.innerHTML = '';
+
+            years.forEach(function(year) {
+                const btn = document.createElement('button');
+                btn.className = 'car-tab' + (year === selectedYear ? ' active' : '');
+                btn.textContent = String(year);
+                btn.addEventListener('click', function() {
+                    selectedYear = year;
+                    const yearQuarters = Array.from(quarterMap[selectedYear] || []);
+                    selectedQuarter = yearQuarters.length
+                        ? Math.max.apply(null, yearQuarters)
+                        : currentQuarter;
+                    renderYearTabs();
+                    renderQuarterTabs();
+                    renderTable();
+                });
+                yearTabs.appendChild(btn);
+            });
+        }
+
+        renderYearTabs();
+        renderQuarterTabs();
+        renderTable();
     }
 
     function toNumericOrNull(v) {
